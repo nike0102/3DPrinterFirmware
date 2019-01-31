@@ -1,27 +1,5 @@
-//Config.h
-#define Clockwise 0
-#define CounterClockwise 1
-
-//Pins
-#define X_Axis_Step_Pin 3
-#define X_Axis_Dir_Pin  4
-#define X_Axis_MS1_Pin  5
-#define X_Axis_MS2_Pin  6
-#define X_Axis_MS3_Pin  7
-
-#define Y_Axis_Step_Pin 8
-#define Y_Axis_Dir_Pin  9
-
-#define Z_Axis_Step_Pin 10
-#define Z_Axis_Dir_Pin  11
-
-//Variables
-#define X_Axis_Dir_Config CounterClockwise  //On Y facing front of Bed
-#define MM_Per_Rotation 8
-#define Min_Pulse_Width 500        //in microseconds
-
-//#include "Config.h"
-//#include "parser.h"
+#include "Config.h"
+#include "Parser.h"
 
 float Head_X, Head_Y, Head_Z, Head_E;
 bool X_Motor_Direction = X_Axis_Dir_Config, Y_Motor_Direction, Z_Motor_Direction, E_Motor_Direction;
@@ -47,22 +25,6 @@ void loop() {
 //Checks for an input on the controller
 void checkInput() {
 
-}
-
-struct Gcommand {
-  float x;
-  float y;
-  float z;
-  float feed;
-  float extrude;
-  int number;
-  char letter;
-};
-
-//Parses GCode string and places the information in a returned struct
-struct Gcommand* readGCodeString(char* command, struct Gcommand *returnGCommand) {
-
-  return returnGCommand;
 }
 
 
