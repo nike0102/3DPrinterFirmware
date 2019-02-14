@@ -1,0 +1,171 @@
+G0-G1: Linear Move
+G2-G3: Controlled Arc Move
+G4: Dwell
+G5: Bézier cubic spline
+G10: Retract
+G11: Recover
+G12: Clean the Nozzle
+G20: Inch Units
+G21: Millimeter Units
+G26: Mesh Validation Pattern
+G27: Park the nozzle
+G28: Auto Home
+G29: Bed Leveling (Manual)
+G29: Bed Leveling (Automatic)
+G29: Bed Leveling (Unified)
+G30: Single Z-Probe
+G31: Dock Sled
+G32: Undock Sled
+G33: Delta Auto Calibration
+G38.2-G38.3: Probe target
+G42: Move to mesh coordinate
+G90: Absolute Positioning
+G91: Relative Positioning
+G92: Set Position
+
+
+M0-M1: Unconditional stop
+M3: Spindle CW / Laser On
+M4: Spindle CCW / Laser On
+M5: Spindle / Laser Off
+M17: Enable Steppers
+M18-M84: Disable steppers
+M20: List SD Card
+M21: Init SD card
+M22: Release SD card
+M23: Select SD file
+M24: Start or Resume SD print
+M25: Pause SD print
+M26: Set SD position
+M27: Report SD print status
+M28: Start SD write
+M29: Stop SD write
+M30: Delete SD file
+M31: Print time
+M32: Select and Start
+M33: Get Long Path
+M34: SDCard Sorting
+M42: Set Pin State
+M43: Debug Pins
+M43 T: Toggle Pins
+M48: Probe Accuracy Test
+M73: Set Print Progress
+M75: Start Print Job Timer
+M76: Pause Print Job
+M77: Stop Print Job Timer
+M78: Print Job Stats
+M80: Power On
+M81: Power Off
+M82: E Absolute
+M83: E Relative
+M85: Inactivity Shutdown
+M92: Set Axis Steps-per-unit
+M100: Free Memory
+M104: Set Hotend Temperature
+M105: Report Temperatures
+M106: Set Fan Speed
+M107: Fan Off
+M108: Break and Continue
+M109: Wait for Hotend Temperature
+M110: Set Line Number
+M111: Debug Level
+M112: Emergency Stop
+M113: Host Keepalive
+M114: Get Current Position
+M115: Firmware Info
+M117: Set LCD Message
+M118: Serial print
+M119: Endstop States
+M120: Enable Endstops
+M121: Disable Endstops
+M122: TMC Debugging
+M125: Park Head
+M126: Baricuda 1 Open
+M127: Baricuda 1 Close
+M128: Baricuda 2 Open
+M129: Baricuda 2 Close
+M140: Set Bed Temperature
+M145: Set Material Preset
+M149: Set Temperature Units
+M150: Set RGB(W) Color
+M155: Temperature Auto-Report
+M163: Set Mix Factor
+M164: Save Mix
+M165: Set Mix
+M190: Wait for Bed Temperature
+M200: Set Filament Diameter
+M201: Set Print Max Acceleration
+M203: Set Max Feedrate
+M204: Set Starting Acceleration
+M205: Set Advanced Settings
+M206: Set Home Offsets
+M207: Set Firmware Retraction
+M208: Set Firmware Recovery
+M209: Set Auto Retract
+M211: Software Endstops
+M217: Filament swap parameters
+M218: Set Hotend Offset
+M220: Set Feedrate Percentage
+M221: Set Flow Percentage
+M226: Wait for Pin State
+M240: Trigger Camera
+M250: LCD Contrast
+M260: I2C Send
+M261: I2C Request
+M280: Servo Position
+M290: Babystep
+M300: Play Tone
+M301: Set Hotend PID
+M302: Cold Extrude
+M303: PID autotune
+M304: Set Bed PID
+M350: Set micro-stepping
+M351: Set Microstep Pins
+M355: Case Light Control
+M360: SCARA Theta A
+M361: SCARA Theta-B
+M362: SCARA Psi-A
+M363: SCARA Psi-B
+M364: SCARA Psi-C
+M380: Activate Solenoid
+M381: Deactivate Solenoids
+M400: Finish Moves
+M401: Deploy Probe
+M402: Stow Probe
+M404: Set Filament Diameter
+M405: Filament Width Sensor On
+M406: Filament Width Sensor Off
+M407: Filament Width
+M410: Quickstop
+M412: Filament Runout
+M413: Power-loss Recovery
+M420: Bed Leveling State
+M421: Set Mesh Value
+M428: Home Offsets Here
+M500: Save Settings
+M501: Restore Settings
+M502: Factory Reset
+M503: Report Settings
+M504: Validate EEPROM contents
+M524: Abort SD print
+M540: Endstops Abort SD
+M600: Filament Change
+M603: Configure Filament Change
+M605: Dual Nozzle Mode
+M665: Delta Configuration
+M665: SCARA Configuration
+M666: Set Delta endstop adjustments
+M666: Set dual endstop offsets
+M851: Z Probe Offset
+M852: Bed Skew Compensation
+M900: Linear Advance Factor
+M906: TMC Motor Current
+M907: Set Motor Current
+M908: Set Trimpot Pins
+M909: DAC Print Values
+M910: Commit DAC to EEPROM
+M911: TMC OT Pre-Warn Condition
+M912: Clear TMC OT Pre-Warn
+M913: Set Hybrid Threshold Speed
+M914: TMC Bump Sensitivity
+M915: TMC Z axis calibration
