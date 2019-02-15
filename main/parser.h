@@ -1,3 +1,7 @@
+//Libraries
+#include <stdio.h>
+
+//Structures
 typedef struct Gcommand{
 	
 	//Values

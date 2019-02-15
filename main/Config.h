@@ -1,6 +1,8 @@
 //Definitions
 #define Clockwise 0
 #define CounterClockwise 1
+#define False 0
+#define True 1
 
 //Pins
 #define X_Axis_Step_Pin 3

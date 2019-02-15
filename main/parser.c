@@ -1,4 +1,4 @@
-#include "Parser.h"
+#include "parser.h"
 
 int readGCodeString(char* command, GCommand *returnGCommand){
 
@@ -6,7 +6,6 @@ int readGCodeString(char* command, GCommand *returnGCommand){
   char tempBuf[25] = {'\0'};
   int inum;
   float fnum;
-
   //Set all flags to 0
   returnGCommand->xf = 0;
   returnGCommand->yf = 0;
@@ -206,7 +205,6 @@ int readGCodeString(char* command, GCommand *returnGCommand){
         break;
 	  default:
 		printf("Error! Unknown parameter - %s", tempBuf);
-		exit(0);
     }
 
     //Clear temporary buffer
