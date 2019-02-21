@@ -1,3 +1,6 @@
+#ifndef PARSE_H
+#define PARSE_H
+
 //Libraries
 #include <stdio.h>
 
@@ -39,8 +42,19 @@ typedef struct Gcommand{
 	unsigned char mf;
 }GCommand;
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 //Functions
 int readGCodeString(char* command, struct Gcommand* returnGCommand);
 int getIntValue(char* temp);
 float getFloatValue(char* temp);
 int power(int base, int exponent);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

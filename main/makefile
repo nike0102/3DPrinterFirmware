@@ -1,7 +1,7 @@
 CC=gcc
 LIBRARIES = -lwiringPi
-HEADERS = main.h parser.h gcodefunctions.h Config.h screen.h wifi.h
-SOURCE = main.c parser.c gcodefunctions.c screen.c wifi.c
+HEADERS = main.h parser.h gcodefunctions.h Config.h screen.h wifi.h sdfunctions.h
+SOURCE = main.c parser.cpp gcodefunctions.cpp screen.cpp wifi.cpp sdfunctions.cpp
 OBJECTS = $(SOURCE:.c=.o)
 EXE = 3DPrinter
 RM = rm -f

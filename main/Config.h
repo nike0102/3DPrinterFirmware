@@ -1,3 +1,13 @@
+/* Pin Definitions - Arduino Mega
+ * 
+ *  
+ *  SD Card Module
+ *  CS - 53
+ *  SCK - 52
+ *  MISO - 50
+ *  MOSI - 51
+ */
+
 //Definitions
 #define Clockwise 0
 #define CounterClockwise 1

@@ -44,7 +44,7 @@ int readGCodeString(char* command, GCommand *returnGCommand){
     tempBuf[i2] = '\0';
 	
 	//Check for command with message
-	if ((returnGCommand->letter == 'M') && (returnGCommand->num == 117)){
+	if ((returnGCommand->letter == 'M') && ( (returnGCommand->num == 117) || (returnGCommand->num == 23) ) ){
 	  for (i = 0; i < 24 && tempBuf[i] != '\r' && tempBuf[i] != '\n' && tempBuf[i] != '\0'; i++){
 		*(returnGCommand->msg + i) = tempBuf[i];  
 	  }

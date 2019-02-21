@@ -9,6 +9,11 @@ float Head_X, Head_Y, Head_Z, Head_E1, Head_E2;
 //uint8_t stepMode = 1;
 float MM_Per_Step = 8 / 200;//((float)stepMode * 200);
 
+bool currentlyPrinting = false;
+bool doneWithCommand = false;
+char cmdBuffer[25] = {0};
+static SdFile SDReadFile;
+
 //Functions
 
 //G1 and G2 - Linear Move
@@ -283,5 +288,75 @@ uint8_t checkIfDone(float MM_Left){
   } else {
     return 0;
   }
+}
+
+void selectSDFile(GCommand *command){               //M23
+
+  uint8_t i;
+  
+  //Copy serial input into buffer
+  for (i = 0; i < 25; i++){
+    selectedSDFile[i] = *(command->msg + i);
+    }
+
+  //Verify that the file actually exists
+  if (doesExist(selectedSDFile)){             
+  //Success
+    Serial.print(F("File "));
+    Serial.print(selectedSDFile);
+    Serial.println(F(" selected!"));
+  } else {
+    Serial.print(F("Sorry, but the file "));
+    Serial.print(selectedSDFile);
+    Serial.println(F(" does not exist."));
+    for (i = 0; i < 25; i++){
+      selectedSDFile[i] = 0;
+    }
+  }                                 
+}
+
+void startSDPrint(char* filename){                  //M24
+
+  //Error Check
+  if (filename[0] == 0){
+    Serial.println(F("Error, no SD file selected!"));
+    return;
+  }
+
+  //Check and set flags
+  if (currentlyPrinting == true){
+    Serial.println(F("Error, already printing!"));
+    return;
+  } else {
+    currentlyPrinting = true;
+  }
+
+  if (currentlyopen == true){
+    Serial.println(F("Error, file already open!"));
+    return;
+  } else {
+    currentlyopen = true;
+    SDReadFile.open(filename, O_RDONLY);
+  }
+
+  continueSDPrint();
+}
+
+void continueSDPrint(){
+
+  int temp;
+  
+  readLine(&SDReadFile, cmdBuffer);
+
+  if (cmdBuffer[0] == ';'){ //ignore comments
+    continueSDPrint();
+  }
+
+  temp = readGCodeString(cmdBuffer, &currentGCodeCommand);
+  
+  if (currentlyopen == false){
+    SDReadFile.close();
+    Serial.println("Last line read!");
+  }  
 }
 
