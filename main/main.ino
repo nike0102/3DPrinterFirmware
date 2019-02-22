@@ -1,6 +1,12 @@
 //Includes
 #include "main.h"
 
+byte i;
+int readok;
+HTMLRequest htreq;
+WiFiEspServer server(80);
+WiFiEspClient client;
+
 
 void setup(){
 	//Motor step pins
@@ -9,14 +15,19 @@ void setup(){
 	//pinMode(Z_Axis_Step_Pin, OUTPUT);
 
   Serial.begin(9600);
+
+  //Attempt to initalize SD card
+  if (!sd.begin(chipSelect, SD_SCK_MHZ(50))) {
+    Serial.println("SD card initalization failed");
+    SDError();
+  }
+  
+  powerOn();
   delay(1000);
 
 }
 
 //Main loop
-
-byte i;
-int readok;
 
 void loop(){
 
@@ -31,6 +42,28 @@ void loop(){
     handleCommand(&currentGCodeCommand);
   }
 
+  client = server.available();  // listen for incoming clients
+  if (client.available()) {                               // if you get a client,
+    readRequest(&htreq);
+
+    if (htreq.type == 1){
+      sendHttpResponseMain();
+    }
+
+    //Clear out HTTP Response struct
+    htreq.type = 0;
+    htreq.messagelength = -1;
+    htreq.alreadyread = 0;
+    htreq.currentlyReadingFile = false;
+    for (i = 0; i < 25; i++){
+      htreq.filename[i] = 0;
+      htreq.link[i] = 0;
+    }
+    
+    
+    delay(50);
+    client.stop();
+  }
 }
 
 

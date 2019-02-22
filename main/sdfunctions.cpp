@@ -12,26 +12,29 @@ SdFile file;  // Use for file creation in folders.
 
 bool currentlyopen = false;
 
-
-
 //Functions
 void buildFileTree(FileTree* head){
+  
+  //Variables
+  byte i;
+  bool goodfile;
+  FileTree *nextBranch;
+  FileTree *prevhead;
 
   if (currentlyopen == true){
     Serial.println("Error, a file is currently open");
     return;
   }
 
-  //Variables
-  byte i;
-  bool goodfile;
-  FileTree *nextBranch;
-
-  //Attempt to initalize SD card
-  if (!sd.begin(chipSelect, SD_SCK_MHZ(50))) {
-    Serial.println("SD card initalization failed");
-    SDError();
-    return;
+  //Clear out linked list
+  if (head->nextfile != NULL){
+    prevhead = head->nextfile;
+    while (prevhead->nextfile != NULL){
+      nextBranch = prevhead->nextfile;
+      free(prevhead);
+      prevhead = nextBranch;
+    }
+    head->nextfile = NULL;
   }
 
   //Attempt to open root directory
@@ -40,13 +43,23 @@ void buildFileTree(FileTree* head){
     SDError();
     return;
   }   
-
+  
   //Ignore first file - System Volume Information
   file.openNext(&root, O_RDONLY);
   file.close();
   
   //Open each file
   while (file.openNext(&root, O_RDONLY)){
+
+    if (*(head->filename) != 0){
+      //Generate next item in linked list
+      nextBranch = malloc(sizeof(FileTree));
+      head->nextfile = nextBranch;
+
+      //Move to next item in list
+      head = nextBranch;
+      head->nextfile = NULL;
+    }
 
     //Clear buffer
     for (i = 0; i < 20; *(head->filename + i++) = 0){}
@@ -62,15 +75,9 @@ void buildFileTree(FileTree* head){
     //Close the opened file
     file.close();
 
-    //Generate next item in linked list
-    nextBranch = malloc(sizeof(FileTree));
-    head->nextfile = nextBranch;
-
-    //Move to next item in list
-    head = nextBranch;
-    head->nextfile = NULL;
   }
 
+  root.close();
   
 }
 
@@ -118,6 +125,10 @@ byte getNumberOfFiles(FileTree* head){
   }
 
   return i;
+}
+
+void writeCharToFile(SdFile *thefile, char writechar){
+  thefile->write(writechar);
 }
 
 void SDError(){

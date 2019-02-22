@@ -11,6 +11,9 @@ typedef struct filetree{
 }FileTree;
 
 extern bool currentlyopen;
+extern SdFat sd; // File system object.
+extern SdFile root;  // Directory file.
+extern const uint8_t chipSelect;
 
 //Functions
 #ifdef __cplusplus
@@ -20,6 +23,7 @@ extern "C" {
 void buildFileTree(FileTree* head);
 byte getNumberOfFiles(FileTree* head);
 void readLine(SdFile *thefile, char *dest);
+void writeCharToFile(SdFile *thefile, char writechar);
 bool doesExist(char* filename);
 void SDError();
 

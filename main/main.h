@@ -6,6 +6,7 @@
 #include "sdfunctions.h"
 #include "parser.h"
 #include "gcodefunctions.h"
+#include "wifi.h"
 
 
 //Global variables
@@ -14,6 +15,7 @@ GCommand currentGCodeCommand;
 char inputBuffer[25] = {0};
 char selectedSDFile[25] = {0};
 
+extern HTMLRequest htreq;
 extern bool currentlyPrinting;
 extern bool doneWithCommand;
 
