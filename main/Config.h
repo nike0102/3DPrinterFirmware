@@ -6,6 +6,8 @@
  *  SCK - 52
  *  MISO - 50
  *  MOSI - 51
+ *  
+ *  WiFi chip is on Serial3
  */
 
 //Definitions
@@ -13,19 +15,73 @@
 #define CounterClockwise 1
 #define False 0
 #define True 1
+#define JOSH 0
 
 //Pins
-#define X_Axis_Step_Pin 3
-#define X_Axis_Dir_Pin  4
-#define X_Axis_MS1_Pin  5
-#define X_Axis_MS2_Pin  6
-#define X_Axis_MS3_Pin  7
 
-#define Y_Axis_Step_Pin 8
-#define Y_Axis_Dir_Pin  9
+//*******************************************************Motors
+#ifndef JOSH
+//A4988 driver pins
+#define X_Axis_Step_Pin 22
+#define X_Axis_Dir_Pin  23
+#define Y_Axis_Step_Pin 25
+#define Y_Axis_Dir_Pin  24
+#define Z1_Axis_Step_Pin 37
+#define Z1_Axis_Dir_Pin  36
+#define Z2_Axis_Step_Pin 35
+#define Z2_Axis_Dir_Pin  34
+#define E_Axis_Step_Pin 49
+#define E_Axis_Dir_Pin  48
+#define MS1_Pin 12
+#define MS2_Pin 11
+#define MS3_Pin 10
+#else
+//Josh's pins
+#define X_Axis_2B //PD2
+#define X_Axis_2A //PD3
+#define X_Axis_1A 22
+#define X_Axis_1B 23
 
-#define Z_Axis_Step_Pin 10
-#define Z_Axis_Dir_Pin  11
+#define Y_Axis_2B //PD4
+#define Y_Axis_2A //PD5
+#define Y_Axis_1A 25
+#define Y_Axis_1B 24
+
+#define Z1_Axis_2B //PD6
+#define Z1_Axis_2A //PD7
+#define Z1_Axis_1A 37
+#define Z1_Axis_1B 36
+
+#define Z2_Axis_2B //No connection to ATMega2560
+#define Z2_Axis_2A //No connection to ATMega2560
+#define Z2_Axis_1A 35
+#define Z2_Axis_1B 34
+
+#define E_Axis_2B //PE2 Pin not supported in Arduino
+#define E_Axis_2A //PE3
+#define E_Axis_1A 49 
+#define E_Axis_1B 48
+#endif
+//*******************************************************Motors
+
+
+//*******************************************************Heaters
+#define Exturder_Heater_Pin 6
+#define Bed_Heater_Pin 7
+//*******************************************************Heaters
+
+
+//*******************************************************Thermistors
+#define Exturder_Thermistor_Pin A0
+#define Bed_Thermistor_Pin A1
+//*******************************************************Thermistors
+
+
+//*******************************************************Endstops
+#define X-Axis_Endstop //Don't use -> Shorted to ground
+#define Y-Axis_Endstop //Don't use -> Shorted to ground
+#define Z-Axis_Endstop //Don't use -> Shorted to ground
+//*******************************************************Endstops
 
 //Variables
 #define X_Axis_Dir_Config CounterClockwise  //On Y facing front of Bed

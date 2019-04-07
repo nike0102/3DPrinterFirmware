@@ -1,8 +1,6 @@
 #include "sdfunctions.h"
 
 
-
-
 // SD card chip select pin.
 const uint8_t chipSelect = SS;
 
@@ -66,11 +64,6 @@ void buildFileTree(FileTree* head){
 
     //Load name into FileTree
     goodfile = file.getName(head->filename, 20);
-
-    //Print out the name for debugging purposes
-    if (goodfile == true){
-      Serial.println(head->filename);
-    }
 
     //Close the opened file
     file.close();

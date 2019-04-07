@@ -9,10 +9,24 @@ WiFiEspClient client;
 
 
 void setup(){
-	//Motor step pins
-	//pinMode(X_Axis_Step_Pin, OUTPUT);
-	//pinMode(Y_Axis_Step_Pin, OUTPUT);
-	//pinMode(Z_Axis_Step_Pin, OUTPUT);
+  
+	//Motor pins
+  #ifndef JOSH  //Using A4988 motor driver
+	pinMode(X_Axis_Step_Pin, OUTPUT);
+	pinMode(Y_Axis_Step_Pin, OUTPUT);
+	pinMode(Z1_Axis_Step_Pin, OUTPUT);
+  pinMode(Z2_Axis_Step_Pin, OUTPUT);
+  pinMode(E_Axis_Step_Pin, OUTPUT);
+  pinMode(X_Axis_Dir_Pin, OUTPUT);
+  pinMode(Y_Axis_Dir_Pin, OUTPUT);
+  pinMode(Z1_Axis_Dir_Pin, OUTPUT);
+  pinMode(Z2_Axis_Dir_Pin, OUTPUT);
+  pinMode(E_Axis_Dir_Pin, OUTPUT);
+  pinMode(MS1_Pin, OUTPUT);
+  pinMode(MS2_Pin, OUTPUT);
+  pinMode(MS3_Pin, OUTPUT);
+  #else //Using Josh's custom motor drivers
+  #endif
 
   Serial.begin(9600);
 
@@ -22,7 +36,7 @@ void setup(){
     SDError();
   }
   
-  powerOn();
+  powerOnWiFi();  //Start WiFi chip
   delay(1000);
 
 }
@@ -43,7 +57,7 @@ void loop(){
   }
 
   client = server.available();  // listen for incoming clients
-  if (client.available()) {                               // if you get a client,
+  if (client.available()) {                               //If there's a connection
     readRequest(&htreq);
 
     if (htreq.type == 1){
@@ -60,10 +74,11 @@ void loop(){
       htreq.link[i] = 0;
     }
     
-    
     delay(50);
     client.stop();
   }
+
+  
 }
 
 
@@ -102,11 +117,19 @@ void getSerialInput(){
 void handleCommand(GCommand *command){
   //Local variables
   byte i;
+  FileTree *head = &FilesOnSDCard;
   
   switch(command->letter){
     
     case 'G':
       switch((int)command->num){
+        case 0:                                                //Linear Move
+        case 1:
+        
+          break;
+        case 28:                                               //Auto Home
+          Serial.println(F("Error - Can not home due to motherboard errors"));
+          break;
         default:
           Serial.println(F("Error - Unsupported G command!"));
       }
@@ -114,17 +137,53 @@ void handleCommand(GCommand *command){
       
     case 'M':
       switch((int)command->num){
+        case 0:                                                 //Stop  (Treated the same as M524 - Abort SD Print
+        case 1:
+        case 112:
+          currentlyPrinting = false;
+          SDReadFile.close();
+          currentlyopen = false;
+          break;
         case 20:                                                //List files on SD Card
           Serial.println(F("Getting files on SD card..."));
           buildFileTree(&FilesOnSDCard);
+
+          //Print out files
+          while (head->nextfile != NULL){
+            Serial.println(head->filename);
+            head = head->nextfile;
+          }
+          break;
+        case 21:                                                //Init SD Card
+          //Initalizes on startup
+          break;
+        case 22:                                                //Release SD Card
+          //SD card is required, so no need to release it
           break;
         case 23:                                                //Select a file on SD Card
           Serial.print(F("Selecting file..."));
           selectSDFile(command);
           break;
-        case 24:                                                  //Start a print based on selected SD file
+        case 24:                                                //Start a print based on selected SD file
           startSDPrint(selectedSDFile);
           handleCommand(&currentGCodeCommand);
+          break;
+        case 104:                                               //Set Extruder Temperature
+          
+          break;
+        case 109:                                               //Wait for Extruder Temperature
+          
+          break;
+        case 140:                                               //Set Bed Temperature
+          
+          break;
+        case 190:                                               //Wait for Bed Temperature
+          
+          break;
+        case 524:                                               //Abort SD Print
+          currentlyPrinting = false;
+          SDReadFile.close();
+          currentlyopen = false;
           break;
         default:
           Serial.println(F("Error - Unsupported M command!"));

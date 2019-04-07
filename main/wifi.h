@@ -5,6 +5,7 @@
 #include "parser.h"
 #include "sdfunctions.h"
 #include "WiFiEsp.h"
+#include "gcodefunctions.h"
 
 //Structures
 typedef struct HTMLrequest{
@@ -23,9 +24,15 @@ extern "C" {
 #endif
 
 //Functions
-void powerOn();
+void powerOnWiFi();
 void sendHttpResponseMain();
 void readRequest(HTMLRequest *htreq);
+void sendHttpFiles(char* fname, char* fnum);
+
+//Variables
+extern bool currentlyPrinting;
+extern bool currentlyopen;
+extern FileTree FilesOnSDCard;
 
 #ifdef __cplusplus
 }

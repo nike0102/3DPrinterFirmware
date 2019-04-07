@@ -360,3 +360,12 @@ void continueSDPrint(){
   }  
 }
 
+void manualMove(uint8_t axis, float amount){
+  /*  Axis Values
+   *  0 -> X
+   *  1 -> Y
+   *  2 -> Z
+   *  3 -> E
+   */
+}
+

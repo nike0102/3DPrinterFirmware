@@ -12,6 +12,7 @@
 extern uint8_t X_Motor_Direction, Y_Motor_Direction, Z_Motor_Direction, E1_Motor_Direction, E2_Motor_Direction;
 extern float Head_X, Head_Y, Head_Z, Head_E1, Head_E2;
 extern char selectedSDFile[25];
+extern SdFile SDReadFile;
 extern GCommand currentGCodeCommand;
 
 #ifdef __cplusplus

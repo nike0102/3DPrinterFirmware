@@ -3,7 +3,7 @@
 #include "sdios.h"
 
 // SD card chip select pin.
-const uint8_t chipSelect = SS;
+const uint8_t chipSelect = 53;
 
 // File system object.
 SdFat sd;
@@ -27,7 +27,7 @@ void setup() {
   
   readfiles();
   
-  file.open("test.gcode", O_RDONLY);
+  file.open("1.txt", O_RDONLY);
   Serial.println("\nLine 1");
   readline(&file);
   Serial.println("Line 2");
@@ -68,9 +68,12 @@ void readline(SdFile *thefile){
 }
 
 void readfiles(){
-    if (!sd.begin(chipSelect, SD_SCK_MHZ(50))) {
+    if (!sd.begin(chipSelect, SD_SCK_MHZ(40))) {
     Serial.println("SD card initalization failed");
-    while(1);
+      if (!sd.begin(chipSelect, SD_SCK_MHZ(8))) {
+        Serial.println("SD card initalization failed");
+        while(1);
+      }
   }
 
   //Error check

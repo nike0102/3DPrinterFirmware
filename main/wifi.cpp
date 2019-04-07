@@ -5,6 +5,7 @@
 //ESP RX->Voltage divider->Arduino TX
 //ESP All other pins 3.3V
 //Baudrate = 9600
+//Serial3 for WiFi
 
 char ssid[] = "3DPrinter";         // your network SSID (name)
 char pass[] = "12345678";        // your network password
@@ -19,15 +20,15 @@ void readRequest(HTMLRequest *htreq){
 
   byte i;
 
-  while (htreq->type == 0){
+  while (htreq->type == 0){ //Determine if it's a GET or POST request
     //Read bit
     c = client.read();
 
     //Put in buffer
     incoming.push(c);
 
-    //Check for type
-      if (incoming.endsWith("GET ")){
+      //Check for type
+      if (incoming.endsWith("GET ")){   //If it's a GET, send back homescreen
         htreq->type = 1;
 
         //Code to fix chrome bug
@@ -37,7 +38,7 @@ void readRequest(HTMLRequest *htreq){
           incoming.push(c);
           i++;
           if (incoming.endsWith("/favicon")){
-            Serial.println("Got google favicon request");
+            //Serial.println("Got google favicon request");
           }
         }
 
@@ -49,7 +50,7 @@ void readRequest(HTMLRequest *htreq){
         return;
       }
       
-      if (incoming.endsWith("POST ")){
+      if (incoming.endsWith("POST ")){    //If it's a POST
         htreq->type = 2;
 
         //Get name of POST action="" text
@@ -62,9 +63,11 @@ void readRequest(HTMLRequest *htreq){
           htreq->link[i++] = c;
         }
       }
+
+      
     }
     
-    if (htreq->type == 2 && htreq->link[0] == '/' && htreq->link[1] == 'u' && htreq->link[2] == 'p' && htreq->link[3] == 'l'){
+    if (htreq->type == 2 && htreq->link[0] == '/' && htreq->link[1] == 'u' && htreq->link[2] == 'p' && htreq->link[3] == 'l'){ //Upload a file
 
       while (!incoming.endsWith("Content-Length: ")){
         c = client.read();
@@ -137,7 +140,7 @@ void readRequest(HTMLRequest *htreq){
         mimebuffer.push(c);
         htreq->alreadyread++;
 
-        if (incoming.endsWith("----WebKit")){
+        if (incoming.endsWith("----WebK")){
           while (client.available()){
             c = client.read();
             htreq->alreadyread++;
@@ -156,46 +159,196 @@ void readRequest(HTMLRequest *htreq){
 
       SDWriteFile.close();
       currentlyopen = false;  
+      } 
+
+      if (htreq->type == 2 && htreq->link[0] == '/' && htreq->link[1] == 'X'){  //Manually move X-Axis
+        if (htreq->link[2] == '-' && htreq->link[2] == '3'){  //-10mm
+          manualMove(0, -10.0);
+        }
+        if (htreq->link[2] == '-' && htreq->link[2] == '2'){  //-1mm
+          manualMove(0, -1.0);
+        }
+        if (htreq->link[2] == '-' && htreq->link[2] == '1'){  //-0.1mm
+          manualMove(0, -0.1);
+        }
+        if (htreq->link[2] == '0'){                           //Home
+          //Can't home
+        }
+        if (htreq->link[2] == '+' && htreq->link[2] == '1'){  //+0.1mm
+          manualMove(0, -0.1);
+        }
+        if (htreq->link[2] == '+' && htreq->link[2] == '2'){  //+1mm
+          manualMove(0, -1.0);
+        }
+        if (htreq->link[2] == '+' && htreq->link[2] == '3'){  //+10mm
+          manualMove(0, 10.0);
+        }
       }
 
-      //Send user back to home
+      if (htreq->type == 2 && htreq->link[0] == '/' && htreq->link[1] == 'Y'){  //Manually move Y-Axis
+        if (htreq->link[2] == '-' && htreq->link[2] == '3'){  //-10mm
+          manualMove(1, -10.0);
+        }
+        if (htreq->link[2] == '-' && htreq->link[2] == '2'){  //-1mm
+          manualMove(1, -1.0);
+        }
+        if (htreq->link[2] == '-' && htreq->link[2] == '1'){  //-0.1mm
+          manualMove(1, -0.1);
+        }
+        if (htreq->link[2] == '0'){                           //Home
+          //Can't home
+        }
+        if (htreq->link[2] == '+' && htreq->link[2] == '1'){  //+0.1mm
+          manualMove(1, -0.1);
+        }
+        if (htreq->link[2] == '+' && htreq->link[2] == '2'){  //+1mm
+          manualMove(1, -1.0);
+        }
+        if (htreq->link[2] == '+' && htreq->link[2] == '3'){  //+10mm
+          manualMove(1, 10.0);
+        }
+      }
+
+      if (htreq->type == 2 && htreq->link[0] == '/' && htreq->link[1] == 'Z'){  //Manually move Z-Axis
+        if (htreq->link[2] == '-' && htreq->link[2] == '3'){  //-10mm
+          manualMove(2, -10.0);
+        }
+        if (htreq->link[2] == '-' && htreq->link[2] == '2'){  //-1mm
+          manualMove(2, -1.0);
+        }
+        if (htreq->link[2] == '-' && htreq->link[2] == '1'){  //-0.1mm
+          manualMove(2, -0.1);
+        }
+        if (htreq->link[2] == '0'){                           //Home
+          //Can't home
+        }
+        if (htreq->link[2] == '+' && htreq->link[2] == '1'){  //+0.1mm
+          manualMove(2, -0.1);
+        }
+        if (htreq->link[2] == '+' && htreq->link[2] == '2'){  //+1mm
+          manualMove(2, -1.0);
+        }
+        if (htreq->link[2] == '+' && htreq->link[2] == '3'){  //+10mm
+          manualMove(2, 10.0);
+        }
+      }
+
+      if (htreq->type == 2 && htreq->link[0] == '/' && htreq->link[1] == 'E'){  //Manually move E-Axis
+        if (htreq->link[2] == '-' && htreq->link[2] == '3'){  //-10mm
+          manualMove(3, -10.0);
+        }
+        if (htreq->link[2] == '-' && htreq->link[2] == '2'){  //-1mm
+          manualMove(3, -1.0);
+        }
+        if (htreq->link[2] == '-' && htreq->link[2] == '1'){  //-0.1mm
+          manualMove(3, -0.1);
+        }
+        if (htreq->link[2] == '+' && htreq->link[2] == '1'){  //+0.1mm
+          manualMove(3, -0.1);
+        }
+        if (htreq->link[2] == '+' && htreq->link[2] == '2'){  //+1mm
+          manualMove(3, -1.0);
+        }
+        if (htreq->link[2] == '+' && htreq->link[2] == '3'){  //+10mm
+          manualMove(3, 10.0);
+        }
+      }
+
+      //Send user back to homepage
       sendHttpResponseMain();
 }
 
-void powerOn(){
-  Serial2.begin(9600);    // initialize serial for ESP module
-  WiFi.init(&Serial2);    // initialize ESP module
-
-  Serial.print("Attempting to start AP ");
-  Serial.println(ssid);
+void powerOnWiFi(){
+  Serial3.begin(9600);    // initialize serial for ESP module
+  WiFi.init(&Serial3);    // initialize ESP module
 
   status = WiFi.beginAP(ssid, 10, pass, ENC_TYPE_WPA2_PSK);
-
+  IPAddress ip = WiFi.localIP();
+  
   Serial.println("Access point started");
-
+  Serial.print("SSID: ");
+  Serial.println(ssid);
+  Serial.print("Password (WPA2): ");
+  Serial.println(pass);
+  Serial.print("To access this 3D Printer's website, go to http://");
+  Serial.println(ip);
+  Serial.println();
+  
+  
   // start the web server on port 80
   server.begin();
-  Serial.println("Server started");
 }
 
 
 void sendHttpResponseMain(){
-  client.print(
-    "HTTP/1.1 200 OK\r\n"
-    "Content-Type: text/html\r\n"
-    "Connection: close\r\n"  // the connection will be closed after completion of the response
-    "\r\n");
-  client.print("<!DOCTYPE HTML>\r\n");
-  client.print("<html>\r\n");
-  client.print("<body style=\"background-color: lightblue;\">\r\n");
-  client.print("<h1 style=\"text-align: center;\">3D Printer Control</h1>\r\n");
-  client.print("<form action=\"upload\" method=\"post\" enctype=\"multipart/form-data\">\r\n");
-  client.print("<input type=\"file\" name=\"fileToUpload\" value=\"Upload\">\r\n");
-  client.print("<input type=\"submit\" value=\"Upload\">\r\n</form>\r\n");
-  client.print("</body>\r\n");
-  client.print("</html>\r\n");
+
+  char buf[200];
+  char c1, c2;
+  byte i, num;
+  FileTree *head = &FilesOnSDCard;
+
+  //Make sure a file isn't already open and then open the website file
+  if (currentlyopen == true){
+    Serial.println(F("Error, file already open!"));
+    return;
+  } else {
+    currentlyopen = true;
+    SDReadFile.open("index.html", O_RDONLY);
+  }
+  
   delay(50);
+
+  //Start parsing and sending data
+  while (SDReadFile.available()){
+
+    //Clean out the buffer
+    for (i = 0; i < 200; i++){
+      buf[i] = 0;
+    }
+
+    //Copy each line into the buffer
+    for (i = 0; i < 200 && SDReadFile.available(); i++){
+      buf[i] = SDReadFile.read();
+      if (buf[i] == '\n'){
+        buf[++i] = '\0';
+        break;
+      }
+    }
+    
+    //Send out the line
+    client.print(buf);
+
+    //Files on SD card section
+    if (buf[12] == '<' && buf[16] == 'F'){
+      while (head->nextfile != NULL){
+        client.print(head->filename);
+        client.print("\r\n<br>\r\n");
+        head = head->nextfile;
+      }
+    }
+    
+  }
+
+  SDReadFile.close();
+  currentlyopen = false;
 }
 
-
+void sendHttpFiles(char* fname, char* fnum){
+  client.print(F("<div style=\"margin-bottom: 5px;\">\r\n"
+               "<div style=\"float: left;\">\r\n"));
+  client.print(fname);                                      //Name of file
+  client.print(F("\r\n<div>\r\n<form action=\"PF"));
+  client.print(fnum);                                       //Number in list
+  client.print(F("\" style=\"float: right; width: 50px; height: 21px; margin-left: 10px;\">\r\n"
+               "<button type=\"submit\""));
+  if (currentlyPrinting == true){                           //Prevent user from trying to start a new print while one is going
+    client.print(F("disabled"));          
+  }
+  client.print(F(">Print</button>\r\n</form>\r\n"
+               "<form action=\"DF"));
+  client.print(fnum);                                       //Number in list
+  client.print(F("\" style=\"float: right; width: 50px; height: 21px;\">\r\n"
+               "<button type=\"submit\">Delete</button>\r\n"
+               "</form>\r\n</div>\r\n<br>\r\n"));
+}
 
