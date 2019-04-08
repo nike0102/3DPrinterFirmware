@@ -3,6 +3,7 @@
 
 byte i;
 int readok;
+static short BedTemp = 25, ExtruderTemp = 25;
 HTMLRequest htreq;
 WiFiEspServer server(80);
 WiFiEspClient client;
@@ -26,17 +27,35 @@ void setup(){
   pinMode(MS2_Pin, OUTPUT);
   pinMode(MS3_Pin, OUTPUT);
   #else //Using Josh's custom motor drivers
+  
   #endif
 
+  //Heater pins
+  pinMode(Extruder_Heater_Pin, OUTPUT);
+  pinMode(Bed_Heater_Pin, OUTPUT);
+
+  //Thermistor pins
+  pinMode(Extruder_Thermistor_Pin, INPUT);
+  pinMode(Bed_Thermistor_Pin, INPUT);
+
+  //Endstops  -> Error in motherboard, don't use
+  //pinMode(X-Axis_Endstop, INPUT);
+  //pinMode(Y-Axis_Endstop, INPUT);
+  //pinMode(Z-Axis_Endstop, INPUT);
+  
+  //Start the Serial port for USB connections
   Serial.begin(9600);
 
-  //Attempt to initalize SD card
+  //Initalize the SD Card
   if (!sd.begin(chipSelect, SD_SCK_MHZ(50))) {
     Serial.println("SD card initalization failed");
     SDError();
   }
   
-  powerOnWiFi();  //Start WiFi chip
+  //Start WiFi chip
+  powerOnWiFi();  
+
+  //Add a one second delay to make sure everything is ready before starting up
   delay(1000);
 
 }
@@ -46,16 +65,19 @@ void setup(){
 void loop(){
 
 
+  //Check for USB commands
   if (Serial.available() > 0){
     getSerialInput();
   }
 
+  //Continue a print if one is started
   if (currentlyPrinting == true && doneWithCommand == true){
     doneWithCommand = false;
     continueSDPrint();
     handleCommand(&currentGCodeCommand);
   }
 
+  //Handle WiFi connections
   client = server.available();  // listen for incoming clients
   if (client.available()) {                               //If there's a connection
     readRequest(&htreq);
@@ -76,6 +98,14 @@ void loop(){
     
     delay(50);
     client.stop();
+  }
+
+  //Make sure bed and extruder temperatures are kept
+  if ((getTemperature(analogRead(Extruder_Thermistor_Pin)) < ExtruderTemp - 1) || (getTemperature(analogRead(Extruder_Thermistor_Pin)) > ExtruderTemp + 1)){
+    setTemperature(1, ExtruderTemp);
+  }
+  if ((getTemperature(analogRead(Bed_Thermistor_Pin)) < BedTemp - 1) || (getTemperature(analogRead(Bed_Thermistor_Pin)) > BedTemp + 1)){
+    setTemperature(0, BedTemp);
   }
 
   
@@ -169,16 +199,24 @@ void handleCommand(GCommand *command){
           handleCommand(&currentGCodeCommand);
           break;
         case 104:                                               //Set Extruder Temperature
-          
+          setTemperature(1, (short)command->s);
+          ExtruderTemp = (short)command->s;
+          doneWithCommand = true;
           break;
         case 109:                                               //Wait for Extruder Temperature
-          
+          if ((getTemperature(analogRead(Extruder_Thermistor_Pin)) >= ExtruderTemp - 1) && (getTemperature(analogRead(Extruder_Thermistor_Pin)) <= ExtruderTemp + 1)){
+            doneWithCommand = true;
+          }
           break;
         case 140:                                               //Set Bed Temperature
-          
+          setTemperature(0, (short)command->s);
+          BedTemp = (short)command->s;
+          doneWithCommand = true;
           break;
         case 190:                                               //Wait for Bed Temperature
-          
+          if ((getTemperature(analogRead(Bed_Thermistor_Pin)) >= BedTemp - 1) && (getTemperature(analogRead(Bed_Thermistor_Pin)) <= BedTemp + 1)){
+            doneWithCommand = true;
+          }
           break;
         case 524:                                               //Abort SD Print
           currentlyPrinting = false;

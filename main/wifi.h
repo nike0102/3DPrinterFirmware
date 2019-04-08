@@ -2,6 +2,7 @@
 #define WIFI_H
 
 #include <Arduino.h>
+#include "PrinterConfig.h"
 #include "parser.h"
 #include "sdfunctions.h"
 #include "WiFiEsp.h"

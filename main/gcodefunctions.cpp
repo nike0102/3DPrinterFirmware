@@ -2,8 +2,8 @@
 #include "gcodefunctions.h"
 
 //Variables
-uint8_t X_Motor_Direction = Clockwise, Y_Motor_Direction = Clockwise, Z_Motor_Direction = Clockwise, E1_Motor_Direction = Clockwise, E2_Motor_Direction = Clockwise;
-float Head_X, Head_Y, Head_Z, Head_E1, Head_E2;
+uint8_t X_Motor_Direction = Clockwise, Y_Motor_Direction = Clockwise, Z_Motor_Direction = Clockwise, E1_Motor_Direction = Clockwise;
+float Head_X, Head_Y, Head_Z, Head_E1;
 
 //1 = Full, 2 = 1/2, 4 = 1/4, 8 = 1/8, 16 = 1/16
 //uint8_t stepMode = 1;
@@ -13,6 +13,43 @@ bool currentlyPrinting = false;
 bool doneWithCommand = false;
 char cmdBuffer[25] = {0};
 static SdFile SDReadFile;
+
+const short NTC3950ThermistorTable[34][2] PROGMEM = {
+  {30,0},
+  {76,20},
+  {93,25},
+  {113,30},
+  {223,50},
+  {414,75},
+  {613,100},
+  {827,140},
+  {853,145},
+  {870,150},
+  {884,155},
+  {897,160},
+  {909,165},
+  {921,170},
+  {931,175},
+  {940,180},
+  {948,185},
+  {955,190},
+  {962,195},
+  {968,200},
+  {972,205},
+  {977,210},
+  {981,215},
+  {985,220},
+  {988,225},
+  {991,230},
+  {994,235},
+  {997,240},
+  {1001,250},
+  {1003,255},
+  {1004,260},
+  {1006,265},
+  {1007,270},
+  {1010,280}
+};
 
 //Functions
 
@@ -361,11 +398,210 @@ void continueSDPrint(){
 }
 
 void manualMove(uint8_t axis, float amount){
+
+  int i, steps;
+  
   /*  Axis Values
    *  0 -> X
    *  1 -> Y
    *  2 -> Z
    *  3 -> E
    */
+
+   //Check directions
+   switch (axis){
+    case 0:
+      if (amount < 0){
+        digitalWrite(X_Axis_Dir_Pin, HIGH);
+        X_Motor_Direction = CounterClockwise;
+        amount *= -1;
+      } else {
+        digitalWrite(X_Axis_Dir_Pin, LOW);
+        X_Motor_Direction = Clockwise;
+      }
+      break;
+    case 1:
+      if (amount < 0){
+        digitalWrite(Y_Axis_Dir_Pin, HIGH);
+        Y_Motor_Direction = CounterClockwise;
+        amount *= -1;
+      } else {
+        digitalWrite(Y_Axis_Dir_Pin, LOW);
+        Y_Motor_Direction = Clockwise;
+      }
+      break;
+    case 2:
+      if (amount < 0){
+        digitalWrite(Z1_Axis_Dir_Pin, HIGH);
+        digitalWrite(Z2_Axis_Dir_Pin, HIGH);
+        Z_Motor_Direction = CounterClockwise;
+        amount *= -1;
+      } else {
+        digitalWrite(Z1_Axis_Dir_Pin, LOW);
+        digitalWrite(Z2_Axis_Dir_Pin, LOW);
+        Z_Motor_Direction = Clockwise;
+      }
+      break;
+    case 3:
+      if (amount < 0){
+        digitalWrite(E_Axis_Dir_Pin, HIGH);
+        E1_Motor_Direction = CounterClockwise;
+        amount *= -1;
+      } else {
+        digitalWrite(E_Axis_Dir_Pin, LOW);
+        E1_Motor_Direction = Clockwise;
+      }
+      break;
+   }
+
+
+   //Full step -> 0.04mm      All microstepping pins low
+   //Half step -> 0.02mm      MS1 high, others low
+   //Quarter step -> 0.01mm   MS2 high, others low
+
+   //Determine microstepping and amount of steps needed
+   if (fmod(amount, 0.04) == 0){         //Can full step
+    digitalWrite(MS1_Pin, LOW);
+    digitalWrite(MS2_Pin, LOW);
+    digitalWrite(MS3_Pin, LOW);
+    steps = amount / 0.04;
+   } else if (fmod(amount, 0.02) == 0){   //Can half step
+    digitalWrite(MS1_Pin, HIGH);
+    digitalWrite(MS2_Pin, LOW);
+    digitalWrite(MS3_Pin, LOW);
+    steps = amount / 0.02;
+   } else {                         //Have to quarter step
+    digitalWrite(MS1_Pin, LOW);
+    digitalWrite(MS2_Pin, HIGH);
+    digitalWrite(MS3_Pin, LOW);
+    steps = amount / 0.01;
+   }
+
+   //Do the movement
+   switch (axis){
+    case 0:
+      for (i = 0; i < steps; i++){
+        digitalWrite(X_Axis_Step_Pin, HIGH);
+        delay(1);
+        digitalWrite(X_Axis_Step_Pin, LOW);
+        delay(1);
+      }
+      break;
+    case 1:
+      for (i = 0; i < steps; i++){
+        digitalWrite(Y_Axis_Step_Pin, HIGH);
+        delay(1);
+        digitalWrite(Y_Axis_Step_Pin, LOW);
+        delay(1);
+      }
+      break;
+    case 2:
+      for (i = 0; i < steps; i++){
+        digitalWrite(Z1_Axis_Step_Pin, HIGH);
+        digitalWrite(Z2_Axis_Step_Pin, HIGH);
+        delay(1);
+        digitalWrite(Z2_Axis_Step_Pin, LOW);
+        digitalWrite(Z1_Axis_Step_Pin, LOW);
+        delay(1);
+      }
+      break;
+    case 3:
+      for (i = 0; i < steps; i++){
+        digitalWrite(E_Axis_Step_Pin, HIGH);
+        delay(1);
+        digitalWrite(E_Axis_Step_Pin, LOW);
+        delay(1);
+      }
+      break;
+   }
+   
+}
+
+short getTemperature(int ADCVal){ //Returns temperature in C. Returns 0 if too cold, and -1 if too hot
+  bool done = 0;
+  byte i;
+  short T, bigA, smallA, bigT, smallT;
+  float Tslope, calV;
+  
+  //Check for exact match
+    for (i = 0; (i < 34) && (done == 0); i++){
+        if (ADCVal == NTC3950ThermistorTable[i][0]){
+          T = NTC3950ThermistorTable[i][1];
+          done = 1;
+        }
+    }
+    
+    //Check if too cold
+    if (ADCVal < 30){
+      done = 1;
+      T = 0;
+    }
+      
+    //Check if too hot
+    if (ADCVal > 1010){
+      done = 1;
+      T = -1;
+    }
+
+    //If no exact match, do interpolation
+    if (done == 0){
+      
+      //Find ranges
+      for (i = 0; (i < 34) && (done == 0); i++){
+          if (NTC3950ThermistorTable[i][0] > ADCVal){
+            bigA = NTC3950ThermistorTable[i][0];
+            bigT = NTC3950ThermistorTable[i][1];
+            smallA = NTC3950ThermistorTable[i - 1][0];
+            smallT = NTC3950ThermistorTable[i - 1][1];
+            done = 1;
+          }
+      }
+      
+      //Calculate T
+      Tslope = (float)((float)(bigT-smallT)/(float)(bigA-smallA)); //M = (Y2-Y1) / (X2-X1)
+      T = Tslope * ADCVal + (smallT - Tslope * smallA); //Y = MX + B
+    }
+
+    return T;
+}
+
+void setTemperature(byte heaterNum, short Temp){  //0 = Bed, 1 = Extruder
+
+  short currentTemp;
+
+  if (heaterNum == 0){                     
+    currentTemp = getTemperature(analogRead(Bed_Thermistor_Pin));
+  } else if (heaterNum == 1){
+    currentTemp = getTemperature(analogRead(Extruder_Thermistor_Pin));
+  } else {
+    Serial.println(F("Error! Bed or Extruder needs to be selected"));
+    return;
+  }
+
+  if (currentTemp < Temp - 1){
+    //Turn on heater
+    
+    if (heaterNum == 0){
+      digitalWrite(Extruder_Heater_Pin, 1);
+    } else if (heaterNum == 0){
+      digitalWrite(Bed_Heater_Pin, 1);
+    } else {
+      return;
+    }
+    
+  }
+
+  if (currentTemp > Temp + 1){
+    //Turn off heater
+
+    if (heaterNum == 0){
+      digitalWrite(Extruder_Heater_Pin, 0);
+    } else if (heaterNum == 0){
+      digitalWrite(Bed_Heater_Pin, 0);
+    } else {
+      return;
+    }
+    
+  }
 }
 

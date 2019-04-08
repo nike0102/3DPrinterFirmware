@@ -2,7 +2,7 @@
 #define MAIN_H
 
 //Includes
-#include "Config.h"
+#include "PrinterConfig.h"
 #include "sdfunctions.h"
 #include "parser.h"
 #include "gcodefunctions.h"

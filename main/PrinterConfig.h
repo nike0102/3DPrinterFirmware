@@ -1,3 +1,6 @@
+#ifndef PRINTERCONFIG_H
+#define PRINTERCONFIG_H
+
 /* Pin Definitions - Arduino Mega
  * 
  *  
@@ -15,7 +18,7 @@
 #define CounterClockwise 1
 #define False 0
 #define True 1
-#define JOSH 0
+//#define JOSH
 
 //Pins
 
@@ -66,13 +69,13 @@
 
 
 //*******************************************************Heaters
-#define Exturder_Heater_Pin 6
+#define Extruder_Heater_Pin 6
 #define Bed_Heater_Pin 7
 //*******************************************************Heaters
 
 
 //*******************************************************Thermistors
-#define Exturder_Thermistor_Pin A0
+#define Extruder_Thermistor_Pin A0
 #define Bed_Thermistor_Pin A1
 //*******************************************************Thermistors
 
@@ -83,7 +86,10 @@
 #define Z-Axis_Endstop //Don't use -> Shorted to ground
 //*******************************************************Endstops
 
-//Variables
+//Constants
 #define X_Axis_Dir_Config CounterClockwise  //On Y facing front of Bed
 #define MM_Per_Rotation 8
+#define Steps_Per_Rotation 200
 #define Min_Pulse_Width 500        //in microseconds
+
+#endif
