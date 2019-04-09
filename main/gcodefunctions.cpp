@@ -14,7 +14,7 @@ bool doneWithCommand = false;
 char cmdBuffer[25] = {0};
 static SdFile SDReadFile;
 
-const short NTC3950ThermistorTable[34][2] PROGMEM = {
+const short NTC3950ThermistorTable[34][2] = {
   {30,0},
   {76,20},
   {93,25},
@@ -518,42 +518,41 @@ void manualMove(uint8_t axis, float amount){
 }
 
 short getTemperature(int ADCVal){ //Returns temperature in C. Returns 0 if too cold, and -1 if too hot
-  bool done = 0;
+  bool done = false;
   byte i;
   short T, bigA, smallA, bigT, smallT;
   float Tslope, calV;
   
   //Check for exact match
-    for (i = 0; (i < 34) && (done == 0); i++){
+    for (i = 0; (i < 34) && (done == false); i++){
         if (ADCVal == NTC3950ThermistorTable[i][0]){
           T = NTC3950ThermistorTable[i][1];
-          done = 1;
+          done = true;
         }
     }
     
     //Check if too cold
     if (ADCVal < 30){
-      done = 1;
+      done = true;
       T = 0;
     }
       
     //Check if too hot
     if (ADCVal > 1010){
-      done = 1;
+      done = true;
       T = -1;
     }
 
     //If no exact match, do interpolation
-    if (done == 0){
-      
+    if (done == false){
       //Find ranges
-      for (i = 0; (i < 34) && (done == 0); i++){
+      for (i = 0; (i < 34) && (done == false); i++){
           if (NTC3950ThermistorTable[i][0] > ADCVal){
             bigA = NTC3950ThermistorTable[i][0];
             bigT = NTC3950ThermistorTable[i][1];
             smallA = NTC3950ThermistorTable[i - 1][0];
             smallT = NTC3950ThermistorTable[i - 1][1];
-            done = 1;
+            done = true;
           }
       }
       

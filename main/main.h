@@ -12,9 +12,9 @@
 //Global variables
 FileTree FilesOnSDCard;
 GCommand currentGCodeCommand;
-char inputBuffer[25] = {0};
 char selectedSDFile[25] = {0};
 
+extern char inputBuffer[25];
 extern HTMLRequest htreq;
 extern bool currentlyPrinting;
 extern bool doneWithCommand;
@@ -23,6 +23,6 @@ extern bool doneWithCommand;
 void loop();
 void setup();
 void handleCommand(GCommand *command);
-void getSerialInput();
+void getInput(bool isSerial);
 
 #endif

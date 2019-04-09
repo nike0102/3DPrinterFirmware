@@ -34,6 +34,10 @@ void sendHttpFiles(char* fname, char* fnum);
 extern bool currentlyPrinting;
 extern bool currentlyopen;
 extern FileTree FilesOnSDCard;
+extern char inputBuffer[25];
+extern short ExtruderTemp;
+extern short BedTemp;
+extern void getInput(bool isSerial);
 
 #ifdef __cplusplus
 }

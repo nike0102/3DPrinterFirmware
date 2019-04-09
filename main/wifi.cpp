@@ -161,6 +161,31 @@ void readRequest(HTMLRequest *htreq){
       currentlyopen = false;  
       } 
 
+      if (htreq->type == 2 && htreq->link[0] == '/' && htreq->link[1] == 's' && htreq->link[2] == 'e' && htreq->link[3] == 'n'){ //Send a command
+    
+        //Skip to command
+        while (!incoming.endsWith("\"Command\" = \"")){
+          c = client.read();
+          incoming.push(c);
+        }
+
+        //Clear buffer
+        for (i = 0; i < 25; i++){
+          inputBuffer[i] = 0;
+        }
+        i = 0;
+
+        //Read the command
+        c = client.read();
+        while ((c != '"') && (i < 25)){
+          inputBuffer[i++] = c;
+          c = client.read();
+        }
+
+        //Handle the command
+        getInput(false);
+      }
+
       if (htreq->type == 2 && htreq->link[0] == '/' && htreq->link[1] == 'X'){  //Manually move X-Axis
         if (htreq->link[2] == '-' && htreq->link[2] == '3'){  //-10mm
           manualMove(0, -10.0);
@@ -306,25 +331,79 @@ void sendHttpResponseMain(){
       buf[i] = 0;
     }
 
-    //Copy each line into the buffer
+    //Handle lines
     for (i = 0; i < 200 && SDReadFile.available(); i++){
       buf[i] = SDReadFile.read();
+      incoming.push(buf[i]);
+
+      //Special cases
+      if (incoming.endsWith("<!--")){
+
+        //Determine data needed
+        for (i = 0; i < 4; i++){
+          buf[i] = SDReadFile.read();
+          incoming.push(buf[i]);
+        }
+
+        //Files on SD card section
+        if (incoming.endsWith("File")){
+          //Clean out the buffer
+          for (i = 0; i < 200; i++){
+            buf[i] = 0;
+          }
+
+          //Find and print out files
+          while (head->nextfile != NULL){
+            client.print(head->filename);
+            client.print("\r\n<br>\r\n");
+            head = head->nextfile;
+          }
+          break;
+        }
+
+        //Attributes section
+        if (incoming.endsWith("Attributes")){
+          client.print("X-Axis Position: ");
+          client.print(Head_X);
+          client.print("<br>\r\n");
+
+          client.print("Y-Axis Position: ");
+          client.print(Head_Y);
+          client.print("<br>\r\n");
+
+          client.print("Z-Axis Position: ");
+          client.print(Head_Z);
+          client.print("<br>\r\n");
+
+          client.print("Current Extruder Temperature: ");
+          client.print(getTemperature(analogRead(Extruder_Thermistor_Pin)));
+          client.print("<br>\r\n");
+
+          client.print("Current Bed Temperature: ");
+          client.print(getTemperature(analogRead(Bed_Thermistor_Pin)));
+          client.print("<br><br>\r\n");
+
+          client.print("Set Extruder Temperature: ");
+          client.print(ExtruderTemp);
+          client.print("<br>\r\n");
+
+          client.print("Set Bed Temperature: ");
+          client.print(BedTemp);
+          client.print("\r\n");
+          
+          break;
+        }    
+      }
+      //End special cases
+
+      //No special cases, push the html line out to the client
       if (buf[i] == '\n'){
         buf[++i] = '\0';
+        //Send out the line
+        client.print(buf);
         break;
       }
-    }
-    
-    //Send out the line
-    client.print(buf);
-
-    //Files on SD card section
-    if (buf[12] == '<' && buf[16] == 'F'){
-      while (head->nextfile != NULL){
-        client.print(head->filename);
-        client.print("\r\n<br>\r\n");
-        head = head->nextfile;
-      }
+      
     }
     
   }

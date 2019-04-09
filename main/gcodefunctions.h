@@ -15,7 +15,6 @@ extern float Head_X, Head_Y, Head_Z, Head_E1, Head_E2;
 extern char selectedSDFile[25];
 extern SdFile SDReadFile;
 extern GCommand currentGCodeCommand;
-extern const short NTC3950ThermistorTable[34][2];
 
 #ifdef __cplusplus
 extern "C" {

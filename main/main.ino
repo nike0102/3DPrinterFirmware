@@ -2,6 +2,7 @@
 #include "main.h"
 
 byte i;
+char inputBuffer[25] = {0};
 int readok;
 static short BedTemp = 25, ExtruderTemp = 25;
 HTMLRequest htreq;
@@ -47,16 +48,18 @@ void setup(){
   Serial.begin(9600);
 
   //Initalize the SD Card
-  if (!sd.begin(chipSelect, SD_SCK_MHZ(50))) {
-    Serial.println("SD card initalization failed");
-    SDError();
-  }
+  //if (!sd.begin(chipSelect, SD_SCK_MHZ(50))) {
+  //  Serial.println("SD card initalization failed");
+  //  SDError();
+  //}
   
   //Start WiFi chip
-  powerOnWiFi();  
+  //powerOnWiFi();  
 
   //Add a one second delay to make sure everything is ready before starting up
   delay(1000);
+
+  Serial.println("Ready");
 
 }
 
@@ -67,7 +70,7 @@ void loop(){
 
   //Check for USB commands
   if (Serial.available() > 0){
-    getSerialInput();
+    getInput(true);
   }
 
   //Continue a print if one is started
@@ -77,7 +80,7 @@ void loop(){
     handleCommand(&currentGCodeCommand);
   }
 
-  //Handle WiFi connections
+  /*Handle WiFi connections
   client = server.available();  // listen for incoming clients
   if (client.available()) {                               //If there's a connection
     readRequest(&htreq);
@@ -99,14 +102,14 @@ void loop(){
     delay(50);
     client.stop();
   }
-
-  //Make sure bed and extruder temperatures are kept
-  if ((getTemperature(analogRead(Extruder_Thermistor_Pin)) < ExtruderTemp - 1) || (getTemperature(analogRead(Extruder_Thermistor_Pin)) > ExtruderTemp + 1)){
-    setTemperature(1, ExtruderTemp);
-  }
-  if ((getTemperature(analogRead(Bed_Thermistor_Pin)) < BedTemp - 1) || (getTemperature(analogRead(Bed_Thermistor_Pin)) > BedTemp + 1)){
-    setTemperature(0, BedTemp);
-  }
+  */
+  //Make sure bed and extruder temperatures are kept within a degree
+  //if ((getTemperature(analogRead(Extruder_Thermistor_Pin)) < ExtruderTemp - 1) || (getTemperature(analogRead(Extruder_Thermistor_Pin)) > ExtruderTemp + 1)){
+  //  setTemperature(1, ExtruderTemp);
+  //}
+  //if ((getTemperature(analogRead(Bed_Thermistor_Pin)) < BedTemp - 1) || (getTemperature(analogRead(Bed_Thermistor_Pin)) > BedTemp + 1)){
+  //  setTemperature(0, BedTemp);
+  //}
 
   
 }
@@ -116,21 +119,58 @@ void loop(){
 /////////////////////////////////////////////////////////////////////////////////
 //Function reads in serial input and decides what to do with it
 /////////////////////////////////////////////////////////////////////////////////
-void getSerialInput(){
-  for (i = 0; i < 25; i++){
-      inputBuffer[i] = 0;
+void getInput(bool isSerial){
+
+    if (isSerial == true){
+      for (i = 0; i < 25; i++){
+        inputBuffer[i] = 0;
+      }
+      i = 0;
+      delay(20);
+      while (Serial.available() > 0 && i < 25){
+        inputBuffer[i++] = Serial.read();
+      }
     }
-    i = 0;
-    delay(20);
-    while (Serial.available() > 0 && i < 25){
-      inputBuffer[i++] = Serial.read();
-    }
+    
     Serial.print("\n>> ");
     Serial.print(inputBuffer);
     
     if (inputBuffer[0] == '#'){  //Debugging
       if (inputBuffer[1] == 'n'){
         doneWithCommand = true;
+      }
+      if (inputBuffer[1] == 'x' && inputBuffer[2] == '+'){
+        manualMove(0,10);
+      }
+      if (inputBuffer[1] == 'x' && inputBuffer[2] == '-'){
+        manualMove(0,-10);
+      }
+      if (inputBuffer[1] == 'y' && inputBuffer[2] == '+'){
+        manualMove(1,10);
+      }
+      if (inputBuffer[1] == 'y' && inputBuffer[2] == '-'){
+        manualMove(1,-10);
+      }
+      if (inputBuffer[1] == 'z' && inputBuffer[2] == '+'){
+        manualMove(2,10);
+      }
+      if (inputBuffer[1] == 'z' && inputBuffer[2] == '-'){
+        manualMove(2,-10);
+      }
+      if (inputBuffer[1] == 'e' && inputBuffer[2] == '+'){
+        manualMove(3,10);
+      }
+      if (inputBuffer[1] == 'e' && inputBuffer[2] == '-'){
+        manualMove(3,-10);
+      }
+      if (inputBuffer[1] == 't'){
+        short ad = analogRead(Extruder_Thermistor_Pin);
+        Serial.print("\nExtruder Set Temperature = ");
+        Serial.println(ExtruderTemp);
+        Serial.print("Actual Temperature = ");
+        Serial.println(getTemperature(ad));
+        Serial.print("ADC Val = ");
+        Serial.println(ad);
       }
     } else {
       readok = readGCodeString(inputBuffer, &currentGCodeCommand);

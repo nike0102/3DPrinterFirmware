@@ -1,156 +1,146 @@
 <body style="background-color: lightblue;">
-    
-    <h1 align="middle">
-        3D Printer Control
-    </h1>
-    
-    <br>
-    
-    <div align="middle">
-        <h3>Upload a file to SD Card</h3>
-        <form action="upload" method="post" enctype="multipart/form-data" style="width: 316px; height: 22px; background-color: rgb(165,165,165); text-align: center;">
-            <input type="file" name="fileToUpload" value="Upload"> 
-            <input type="submit" name="upload" value="Upload">
-        </form>
-    </div>  
-    <br>
-    
-    <div align="middle" style = "width: 750px; margin: 0 auto;">
-        
-        
-        <div style="float: left;">
-        <h3>Files on SD Card</h3>
-        <div style="width: 316px; height: 275px; background-color: rgb(165,165,165); overflow: auto;">
-            <!--Files on SD card loop-->
-        </div>
-        </div>
-        
-        <div style="float: right; ">
-        <h3>Printer Attributes</h3>
-        <div style="width: 316px; height: 275px; background-color: rgb(165,165,165); overflow: auto;">
-            <div class="row" style="float: left; text-align: left;">
-                X Axis Position: <!--XPos-->
-                <br>
-                Y Axis Position: <!--YPos-->
-                <br>
-                Z Axis Position: <!--ZPos-->
-                <br>
-                Extruder Position: <!--EPos-->
-                <br>
-                Extruder Temperature: <!--ETemp-->
-                <br>
-                Bed Temperature: <!--BTem-->
-                <br>
-                Currently Printing: <!--CurFile-->
-                <br>
-                Elapsed Time: <!--ETime-->
-                <br>
-            </div>
-        </div>
-        </div>
-        <div style="clear:both;"></div>
-    </div>
-
-    
-    
-    <br>
-    <br>
-    <h3 align="middle">Manually move an Axis</h3>
-    
-    <div align="middle" style="margin: 15 auto;">
-        <form action="X-3" style="display: inline-block;">
-            <button type="submit" style="width: 75px; height: 50px;">-10mm</button>
-        </form>
-        <form action="X-2" style="display: inline-block;">
-            <button type="submit" style="width: 75px; height: 50px;">-1mm</button>
-        </form>
-        <form action="X-1" style="display: inline-block;">
-            <button type="submit" style="width: 75px; height: 50px;">-0.1mm</button>
-        </form>
-        <form action="X0" style="display: inline-block;">
-            <button type="submit" style="width: 125px; height: 50px;">Home X-Axis</button>
-        </form>
-        <form action="X+1" style="display: inline-block;">
-            <button type="submit" style="width: 75px; height: 50px;">+0.1mm</button>
-        </form>
-        <form action="X+2" style="display: inline-block;">
-            <button type="submit" style="width: 75px; height: 50px;">+1mm</button>
-        </form>
-        <form action="X+3" style="display: inline-block;">
-            <button type="submit" style="width: 75px; height: 50px;">+10mm</button>
-        </form>
-    </div>
-    
-    <div align="middle" style="margin: 15 auto;">
-        <form action="Y-3" style="display: inline-block;">
-            <button type="submit" style="width: 75px; height: 50px;">-10mm</button>
-        </form>
-        <form action="Y-2" style="display: inline-block;">
-            <button type="submit" style="width: 75px; height: 50px;">-1mm</button>
-        </form>
-        <form action="Y-1" style="display: inline-block;">
-            <button type="submit" style="width: 75px; height: 50px;">-0.1mm</button>
-        </form>
-        <form action="Y0" style="display: inline-block;">
-            <button type="submit" style="width: 125px; height: 50px;">Home Y-Axis</button>
-        </form>
-        <form action="Y+1" style="display: inline-block;">
-            <button type="submit" style="width: 75px; height: 50px;">+0.1mm</button>
-        </form>
-        <form action="Y+2" style="display: inline-block;">
-            <button type="submit" style="width: 75px; height: 50px;">+1mm</button>
-        </form>
-        <form action="Y+3" style="display: inline-block;">
-            <button type="submit" style="width: 75px; height: 50px;">+10mm</button>
-        </form>
-    </div>
-    
-    <div align="middle" style="margin: 15 auto;">
-        <form action="Z-3" style="display: inline-block;">
-            <button type="submit" style="width: 75px; height: 50px;">-10mm</button>
-        </form>
-        <form action="Z-2" style="display: inline-block;">
-            <button type="submit" style="width: 75px; height: 50px;">-1mm</button>
-        </form>
-        <form action="Z-1" style="display: inline-block;">
-            <button type="submit" style="width: 75px; height: 50px;">-0.1mm</button>
-        </form>
-        <form action="Z0" style="display: inline-block;">
-            <button type="submit" style="width: 125px; height: 50px;">Home Z-Axis</button>
-        </form>
-        <form action="Z+1" style="display: inline-block;">
-            <button type="submit" style="width: 75px; height: 50px;">+0.1mm</button>
-        </form>
-        <form action="Z+2" style="display: inline-block;">
-            <button type="submit" style="width: 75px; height: 50px;">+1mm</button>
-        </form>
-        <form action="Z+3" style="display: inline-block;">
-            <button type="submit" style="width: 75px; height: 50px;">+10mm</button>
-        </form>
-    </div>
-    
-    <div align="middle" style="margin: 15 auto;">
-        <form action="E-3" style="display: inline-block;">
-            <button type="submit" style="width: 75px; height: 50px;">-10mm</button>
-        </form>
-        <form action="E-2" style="display: inline-block;">
-            <button type="submit" style="width: 75px; height: 50px;">-1mm</button>
-        </form>
-        <form action="E-1" style="display: inline-block;">
-            <button type="submit" style="width: 75px; height: 50px;">-0.1mm</button>
-        </form>
-        <form style="display: inline-block;">
-            <button type="submit" style="width: 125px; height: 50px;">Move Extruder</button>
-        </form>
-        <form action="E+1" style="display: inline-block;">
-            <button type="submit" style="width: 75px; height: 50px;">+0.1mm</button>
-        </form>
-        <form action="E+2" style="display: inline-block;">
-            <button type="submit" style="width: 75px; height: 50px;">+1mm</button>
-        </form>
-        <form action="E+3" style="display: inline-block;">
-            <button type="submit" style="width: 75px; height: 50px;">+10mm</button>
-        </form>
-    </div>
-    
+	
+	<h1 align="middle">
+		3D Printer Control
+	</h1>
+	
+	<br>
+	
+	<div align="middle">
+		<h3>Upload a file to SD Card</h3>
+		<form action="upload" method="post" enctype="multipart/form-data" style="width: 316px; height: 22px; background-color: rgb(165,165,165); text-align: center;">
+			<input type="file" name="fileToUpload" value="Upload"> 
+			<input type="submit" name="upload" value="Upload">
+		</form>
+	</div>  
+	<br>
+	
+	<div align="middle" style = "width: 750px; margin: 0 auto;">
+		
+		
+		<div style="float: left;">
+		<h3>Files on SD Card</h3>
+		<div style="width: 316px; height: 275px; background-color: rgb(165,165,165); overflow: auto;">
+			<!--Files on SD card loop-->
+		</div>
+		</div>
+		
+		<div style="float: right; ">
+		<h3>Printer Attributes</h3>
+		<div style="width: 316px; height: 275px; background-color: rgb(165,165,165); overflow: auto;">
+			<div class="row" style="float: left; text-align: left;">
+				<!--Attributes-->
+			</div>
+		</div>
+		</div>
+		<div style="clear:both;"></div>
+	</div>
+	<br>
+	<br>
+	<div align="middle">
+		<h3 align="middle">Send a command</h3>
+		<form action="send" method="post" enctype="" style="width: 308px; height: 22px; background-color: rgb(165,165,165); text-align: center;">
+			<input type="text" name="Command" size="35"> 
+			<input type="submit" name="send" value="Send">
+		</form>
+	</div>
+	<br>
+	<h3 align="middle">Manually move an Axis</h3>
+	
+	<div align="middle" style="margin: 15 auto;">
+		<form action="X-3" style="display: inline-block;">
+			<button type="submit" style="width: 75px; height: 50px;">-10mm</button>
+		</form>
+		<form action="X-2" style="display: inline-block;">
+			<button type="submit" style="width: 75px; height: 50px;">-1mm</button>
+		</form>
+		<form action="X-1" style="display: inline-block;">
+			<button type="submit" style="width: 75px; height: 50px;">-0.1mm</button>
+		</form>
+		<form action="X0" style="display: inline-block;">
+			<button type="submit" style="width: 125px; height: 50px;">Home X-Axis</button>
+		</form>
+		<form action="X+1" style="display: inline-block;">
+			<button type="submit" style="width: 75px; height: 50px;">+0.1mm</button>
+		</form>
+		<form action="X+2" style="display: inline-block;">
+			<button type="submit" style="width: 75px; height: 50px;">+1mm</button>
+		</form>
+		<form action="X+3" style="display: inline-block;">
+			<button type="submit" style="width: 75px; height: 50px;">+10mm</button>
+		</form>
+	</div>
+	
+	<div align="middle" style="margin: 15 auto;">
+		<form action="Y-3" style="display: inline-block;">
+			<button type="submit" style="width: 75px; height: 50px;">-10mm</button>
+		</form>
+		<form action="Y-2" style="display: inline-block;">
+			<button type="submit" style="width: 75px; height: 50px;">-1mm</button>
+		</form>
+		<form action="Y-1" style="display: inline-block;">
+			<button type="submit" style="width: 75px; height: 50px;">-0.1mm</button>
+		</form>
+		<form action="Y0" style="display: inline-block;">
+			<button type="submit" style="width: 125px; height: 50px;">Home Y-Axis</button>
+		</form>
+		<form action="Y+1" style="display: inline-block;">
+			<button type="submit" style="width: 75px; height: 50px;">+0.1mm</button>
+		</form>
+		<form action="Y+2" style="display: inline-block;">
+			<button type="submit" style="width: 75px; height: 50px;">+1mm</button>
+		</form>
+		<form action="Y+3" style="display: inline-block;">
+			<button type="submit" style="width: 75px; height: 50px;">+10mm</button>
+		</form>
+	</div>
+	
+	<div align="middle" style="margin: 15 auto;">
+		<form action="Z-3" style="display: inline-block;">
+			<button type="submit" style="width: 75px; height: 50px;">-10mm</button>
+		</form>
+		<form action="Z-2" style="display: inline-block;">
+			<button type="submit" style="width: 75px; height: 50px;">-1mm</button>
+		</form>
+		<form action="Z-1" style="display: inline-block;">
+			<button type="submit" style="width: 75px; height: 50px;">-0.1mm</button>
+		</form>
+		<form action="Z0" style="display: inline-block;">
+			<button type="submit" style="width: 125px; height: 50px;">Home Z-Axis</button>
+		</form>
+		<form action="Z+1" style="display: inline-block;">
+			<button type="submit" style="width: 75px; height: 50px;">+0.1mm</button>
+		</form>
+		<form action="Z+2" style="display: inline-block;">
+			<button type="submit" style="width: 75px; height: 50px;">+1mm</button>
+		</form>
+		<form action="Z+3" style="display: inline-block;">
+			<button type="submit" style="width: 75px; height: 50px;">+10mm</button>
+		</form>
+	</div>
+	
+	<div align="middle" style="margin: 15 auto;">
+		<form action="E-3" style="display: inline-block;">
+			<button type="submit" style="width: 75px; height: 50px;">-10mm</button>
+		</form>
+		<form action="E-2" style="display: inline-block;">
+			<button type="submit" style="width: 75px; height: 50px;">-1mm</button>
+		</form>
+		<form action="E-1" style="display: inline-block;">
+			<button type="submit" style="width: 75px; height: 50px;">-0.1mm</button>
+		</form>
+		<form style="display: inline-block;">
+			<button type="submit" style="width: 125px; height: 50px;">Move Extruder</button>
+		</form>
+		<form action="E+1" style="display: inline-block;">
+			<button type="submit" style="width: 75px; height: 50px;">+0.1mm</button>
+		</form>
+		<form action="E+2" style="display: inline-block;">
+			<button type="submit" style="width: 75px; height: 50px;">+1mm</button>
+		</form>
+		<form action="E+3" style="display: inline-block;">
+			<button type="submit" style="width: 75px; height: 50px;">+10mm</button>
+		</form>
+	</div>
+	
 </body>
