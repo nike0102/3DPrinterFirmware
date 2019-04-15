@@ -17,7 +17,7 @@ typedef struct Gcommand{
 	float i;	//x-offset
 	float j;	//y-offset
 	float d;	//diameter
-	float f;	//feed
+	float f;	//feedrate  Given in mm/minute, stored value is mm/second
 	float e;	//extrude
 	float t;	//tool
 	float s;	//temp	r is treated as s

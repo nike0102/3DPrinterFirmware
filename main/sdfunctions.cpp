@@ -60,10 +60,10 @@ void buildFileTree(FileTree* head){
     }
 
     //Clear buffer
-    for (i = 0; i < 20; *(head->filename + i++) = 0){}
+    for (i = 0; i < 30; *(head->filename + i++) = 0){}
 
     //Load name into FileTree
-    goodfile = file.getName(head->filename, 20);
+    goodfile = file.getName(head->filename, 30);
 
     //Close the opened file
     file.close();
@@ -81,6 +81,11 @@ void readLine(SdFile *thefile, char *dest){
     currentlyopen = false;
     return;
   }
+
+  for (i = 0; i < 45; i++){
+    *(dest + i) = 0;
+  }
+  
   *(dest) = thefile->read();
   
   if (*(dest) != ';' && *(dest) != 'M' && *(dest) != 'G'){
@@ -94,7 +99,7 @@ void readLine(SdFile *thefile, char *dest){
     return;
   }
   
-  for (i = 1; i < 25 && thefile->available(); i++){
+  for (i = 1; i < 45 && thefile->available(); i++){
     *(dest + i) = thefile->read();
     if (*(dest + i) == '\r'){
       *(dest + i) = '\0';

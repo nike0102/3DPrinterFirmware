@@ -182,6 +182,9 @@ void readRequest(HTMLRequest *htreq){
           c = client.read();
         }
 
+        Serial.print("Got a web command -> ");
+        Serial.println(inputBuffer);
+
         //Handle the command
         getInput(false);
       }
@@ -289,7 +292,6 @@ void powerOnWiFi(){
 
   status = WiFi.beginAP(ssid, 10, pass, ENC_TYPE_WPA2_PSK);
   IPAddress ip = WiFi.localIP();
-  
   Serial.println("Access point started");
   Serial.print("SSID: ");
   Serial.println(ssid);
@@ -298,8 +300,6 @@ void powerOnWiFi(){
   Serial.print("To access this 3D Printer's website, go to http://");
   Serial.println(ip);
   Serial.println();
-  
-  
   // start the web server on port 80
   server.begin();
 }
@@ -358,11 +358,20 @@ void sendHttpResponseMain(){
             client.print("\r\n<br>\r\n");
             head = head->nextfile;
           }
+
+          //Finish rest of line
+          
           break;
         }
 
         //Attributes section
-        if (incoming.endsWith("Attributes")){
+        if (incoming.endsWith("Attr")){
+
+          //Clean out the buffer
+          for (i = 0; i < 200; i++){
+            buf[i] = 0;
+          }
+          
           client.print("X-Axis Position: ");
           client.print(Head_X);
           client.print("<br>\r\n");
@@ -390,6 +399,9 @@ void sendHttpResponseMain(){
           client.print("Set Bed Temperature: ");
           client.print(BedTemp);
           client.print("\r\n");
+
+          //Finish rest of line
+          
           
           break;
         }    

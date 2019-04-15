@@ -14,10 +14,12 @@ FileTree FilesOnSDCard;
 GCommand currentGCodeCommand;
 char selectedSDFile[25] = {0};
 
-extern char inputBuffer[25];
+extern char inputBuffer[45];
 extern HTMLRequest htreq;
 extern bool currentlyPrinting;
 extern bool doneWithCommand;
+extern bool NoCommand;
+extern long processed;
 
 //Functions
 void loop();

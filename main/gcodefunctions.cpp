@@ -2,16 +2,15 @@
 #include "gcodefunctions.h"
 
 //Variables
-uint8_t X_Motor_Direction = Clockwise, Y_Motor_Direction = Clockwise, Z_Motor_Direction = Clockwise, E1_Motor_Direction = Clockwise;
 float Head_X, Head_Y, Head_Z, Head_E1;
-
-//1 = Full, 2 = 1/2, 4 = 1/4, 8 = 1/8, 16 = 1/16
-//uint8_t stepMode = 1;
-float MM_Per_Step = 8 / 200;//((float)stepMode * 200);
+uint8_t X_Motor_Direction = X_Motor_Direction_Setting, Y_Motor_Direction = Y_Motor_Direction_Setting, Z_Motor_Direction = Z_Motor_Direction_Setting, E1_Motor_Direction = E1_Motor_Direction_Setting;
+int Steps_Per_Rotation = 800;
+float MM_Per_Step = 32.0 / (float)Steps_Per_Rotation;
+float ZMM_Per_Step = 8.0 / (float)Steps_Per_Rotation;
 
 bool currentlyPrinting = false;
 bool doneWithCommand = false;
-char cmdBuffer[25] = {0};
+char cmdBuffer[45] = {0};
 static SdFile SDReadFile;
 
 const short NTC3950ThermistorTable[34][2] = {
@@ -53,45 +52,82 @@ const short NTC3950ThermistorTable[34][2] = {
 
 //Functions
 
-//G1 and G2 - Linear Move
+//G0 and G1 - Linear Move   G0 has no extrusion
 void linearMove(struct Gcommand *currentGCommand) {
 
-  float X_Speed, Y_Speed, Z_Speed, X_Change, Y_Change, Z_Change;
+  float X_Speed, Y_Speed, Z_Speed, X_Change, Y_Change, Z_Change, E_Change, E_Speed, Old_E_Head = Head_E1;
   uint8_t X_done = False, Y_done = False, Z_done = False, X_Enabled = False, Y_Enabled = False, Z_Enabled = False;
   
-  int X_Timer = 0, X_Pulse_Timer = 0, Y_Timer = 0, Y_Pulse_Timer = 0, Z_Timer = 0, Z_Pulse_Timer = 0, Timer_Difference;
-  int X_Time_Watch = 0, Y_Time_Watch = 0, Z_Time_Watch = 0;
+  long X_Timer = 0, X_Pulse_Timer = 0, Y_Timer = 0, Y_Pulse_Timer = 0, Z_Timer = 0, Z_Pulse_Timer = 0, Timer_Difference;
+  long X_Time_Watch = 0, Y_Time_Watch = 0, Z_Time_Watch = 0;
+
+  long E_Timer = 0, E_Pulse_Timer = 0, E_Time_Watch = 0;
+  uint8_t E_Enabled = False, E_done = False;
+
   unsigned long Global_Timer = 0, Old_Global_Timer = 0;
+  
+  
+  if (currentGCommand->xf == 0 && currentGCommand->yf == 0 && currentGCommand->zf == 0 && currentGCommand->ef == 0){
+    return;
+  }
+
+  //Need to implement relative positioning. This line allows for negative relative commands to be ignored
+  //So the microcontroller does not get stuck in an infinite loop
+  if (currentGCommand->x < 0 || currentGCommand->y < 0 || currentGCommand->z < 0 || currentGCommand->e < 0){
+    return;
+  }
 
 
   //Check Directions
   if (Head_X > currentGCommand->x) {
-    reverseMotor(X_Motor_Direction);
+    digitalWrite(X_Axis_Dir_Pin, LOW);
+    X_Motor_Direction = CounterClockwise;
     X_Change = Head_X - currentGCommand->x;
   } else {
+    digitalWrite(X_Axis_Dir_Pin, HIGH);
+    X_Motor_Direction = Clockwise;
     X_Change = currentGCommand->x - Head_X;
   }
 
   if (Head_Y > currentGCommand->y) {
-    reverseMotor(Y_Motor_Direction);
+    digitalWrite(Y_Axis_Dir_Pin, LOW);
+    Y_Motor_Direction = CounterClockwise;
     Y_Change = Head_Y - currentGCommand->y;
   } else {
+    Y_Motor_Direction = Clockwise;
+    digitalWrite(Y_Axis_Dir_Pin, HIGH);
     Y_Change = currentGCommand->y - Head_Y;
   }
 
   if (Head_Z > currentGCommand->z) {
-    reverseMotor(Z_Motor_Direction);
+    digitalWrite(Z1_Axis_Dir_Pin, HIGH);
+    digitalWrite(Z2_Axis_Dir_Pin, HIGH);
+    Z_Motor_Direction = Clockwise;
     Z_Change = Head_Z - currentGCommand->z;
   } else {
+    digitalWrite(Z1_Axis_Dir_Pin, LOW);
+    digitalWrite(Z2_Axis_Dir_Pin, LOW);
+    Z_Motor_Direction = CounterClockwise;
     Z_Change = currentGCommand->z - Head_Z;
   }
 
-
-
-  //Three axis move
+  if (Head_E1 > currentGCommand->e) {
+    digitalWrite(E_Axis_Dir_Pin, HIGH);
+    E1_Motor_Direction = CounterClockwise;
+    E_Change = Head_E1 - currentGCommand->e;
+  } else {
+    digitalWrite(E_Axis_Dir_Pin, LOW);
+    E1_Motor_Direction = Clockwise;
+    E_Change = currentGCommand->e - Head_E1;
+  }
+  
+  //Three axis move -> Doesn't work
   if (Head_X != currentGCommand->x && Head_Y != currentGCommand->y && Head_Z != currentGCommand->z) {
-
-    if (X_Change > Y_Change) {
+    X_done = 0;
+    Y_done = 0;
+    Z_done = 0;
+    
+    /*if (X_Change > Y_Change) {
       if (Y_Change > Z_Change) {
         //X >
         X_Speed = currentGCommand->f;
@@ -116,11 +152,32 @@ void linearMove(struct Gcommand *currentGCommand) {
         Z_Speed = currentGCommand->f;
       }
     }
+  */
+  
+  if (X_Change >= Y_Change && X_Change >= Z_Change){  //X is biggest
+      X_Speed = currentGCommand->f;
+        Y_Speed = currentGCommand->f / (X_Change / Y_Change);
+        Z_Speed = currentGCommand->f / (X_Change / Z_Change);
+    }
 
+    if (Y_Change >= X_Change && Y_Change >= Z_Change){  //Y is biggest
+      X_Speed = currentGCommand->f / (Y_Change / X_Change);
+        Y_Speed = currentGCommand->f;
+        Z_Speed = currentGCommand->f / (Y_Change / Z_Change);
+    }
+
+    if (Z_Change >= X_Change && Z_Change >= Y_Change){  //Z is biggest
+      X_Speed = currentGCommand->f / (Z_Change / X_Change);
+        Y_Speed = currentGCommand->f / (Z_Change / Y_Change);
+        Z_Speed = currentGCommand->f;
+    }
+    
   } else
 
     //Two axis move - X and Y
     if (Head_X != currentGCommand->x && Head_Y != currentGCommand->y) {
+      X_done = 0;
+      Y_done = 0;
       if (Y_Change > X_Change) {
         Y_Speed = currentGCommand->f;
         X_Speed = currentGCommand->f / (Y_Change / X_Change);
@@ -138,6 +195,8 @@ void linearMove(struct Gcommand *currentGCommand) {
 
       //Two axis move - X and Z
       if (Head_X != currentGCommand->x && Head_Z != currentGCommand->z) {
+        X_done = 0;
+        Z_done = 0;
         if (X_Change > Z_Change) {
           X_Speed = currentGCommand->f;
           Y_done = 1;
@@ -155,6 +214,8 @@ void linearMove(struct Gcommand *currentGCommand) {
 
         //Two axis move - Y and Z
         if (Head_Y != currentGCommand->y && Head_Z != currentGCommand->z) {
+          Z_done = 0;
+          Y_done = 0;
           if (Y_Change > Z_Change) {
             X_done = 1;
             Y_Speed = currentGCommand->f;
@@ -171,8 +232,9 @@ void linearMove(struct Gcommand *currentGCommand) {
         } else
 
           //One axis move - X
-          if (Head_X != currentGCommand->x) {
+          if (Head_X != currentGCommand->x){
             X_Speed = currentGCommand->f;
+            X_done = 0;
             Y_done = 1;
             Z_done = 1;
           } else
@@ -180,6 +242,7 @@ void linearMove(struct Gcommand *currentGCommand) {
             //One axis move - Y
             if (Head_Y != currentGCommand->y) {
               X_done = 1;
+              Y_done = 0;
               Y_Speed = currentGCommand->f;
               Z_done = 1;
             } else
@@ -188,35 +251,66 @@ void linearMove(struct Gcommand *currentGCommand) {
               if (Head_Z != currentGCommand->z) {
                 X_done = 1;
                 Y_done = 1;
+                Z_done = 0;
                 Z_Speed = currentGCommand->f;
               } else {
-
-                //Error
-                return;
+                //E only
               }
 
-  //Determine the timer values in microseconds
-  //Makes sure there's no divide by zero error
+  
   if (X_done == 0) {
-    X_Timer = ((double)1 / (double)X_Speed) * 1000;
+    X_Timer = ((double)1.0 / (double)X_Speed) * 1000000.0;
+    X_Timer *= MM_Per_Step;     //Microstepping factor
   } else {
     X_Timer = -1;
   }
   if (Y_done == 0) {
-    Y_Timer = ((double)1 / (double)Y_Speed) * 1000;
+    Y_Timer = ((double)1.0 / (double)Y_Speed) * 1000000.0;
+    Y_Timer *= MM_Per_Step;     //Microstepping factor
   } else {
     Y_Timer = -1;
   }
   if (Z_done == 0) {
-    Z_Timer = ((double)1 / (double)Z_Speed) * 1000;
+    Z_Timer = ((double)1.0 / (double)Z_Speed) * 1000000.0;
+    Z_Timer *= ZMM_Per_Step;     //Microstepping factor
   } else {
     Z_Timer = -1;
   }
+  if ((int)currentGCommand->num == 0){
+    E_done = 1;
+    E_Timer = -1;
+  } else {
+    if (currentGCommand->ef == 0){
+      E_done = 1;
+      E_Timer = -1;
+    } else {
+      E_done = 0;
 
+    //Find biggest timer
+    if (X_Timer >= Y_Timer && X_Timer >= Z_Timer && X_Timer != -1){  //X is biggest
+      E_Timer = (X_Timer * (X_Change / MM_Per_Step)) / (E_Change / MM_Per_Step);  //E_Timer = Total Time / E steps
+    }
+
+    if (Y_Timer >= X_Timer && Y_Timer >= Z_Timer && Y_Timer != -1){  //Y is biggest
+      E_Timer = (Y_Timer * (Y_Change / MM_Per_Step)) / (E_Change / MM_Per_Step);  //E_Timer = Total Time / E steps
+    }
+
+    if (Z_Timer >= X_Timer && Z_Timer >= Y_Timer && Z_Timer != -1){  //Z is biggest
+      E_Timer = (Z_Timer * (Z_Change / MM_Per_Step)) / (E_Change / MM_Per_Step);  //E_Timer = Total Time / E steps
+    }
+
+    if (X_Timer == -1 && Y_Timer == -1 && Z_Timer == -1){ //Only an extrude
+      E_Timer = ((double)1.0 / (double)E_Change) * 1000000.0;
+      E_Timer *= MM_Per_Step;     //Microstepping factor
+    }
+    }
+
+  }
+  
   Global_Timer = micros();
 
   //Do the moving
-  while (X_done != 1 && Y_done != 1 && Z_done != 1) {
+  while (X_done == 0 || Y_done == 0 || Z_done == 0 || E_done == 0) {
 
     //Do time math
     Old_Global_Timer = Global_Timer;
@@ -225,13 +319,14 @@ void linearMove(struct Gcommand *currentGCommand) {
 
     //Protect against overflow
     if (Timer_Difference < 0) {
-      //Timer_Difference =  4294967295 - Global_Timer;
+      Timer_Difference =  4294967295 - Global_Timer;
     }
 
     //Increment timer watch values
     X_Time_Watch += Timer_Difference;
     Y_Time_Watch += Timer_Difference;
     Z_Time_Watch += Timer_Difference;
+    E_Time_Watch += Timer_Difference;
 
     //Lower X on-time timer
     if (X_Enabled == True) {
@@ -240,14 +335,20 @@ void linearMove(struct Gcommand *currentGCommand) {
 
     //Turn X on
     if (X_Timer != -1 && X_Enabled == False && X_Time_Watch >= X_Timer) {
-      //digitalWrite(X_Axis_Step_Pin, HIGH);
+      digitalWrite(X_Axis_Step_Pin, HIGH);
       X_Pulse_Timer = Min_Pulse_Width;
+      X_Time_Watch = 0;
       X_Enabled = True;
     }
 
     //Turn X off
     if (X_Enabled == True && X_Pulse_Timer <= 0) {
-      //digitalWrite(X_Axis_Step_Pin, LOW);
+      digitalWrite(X_Axis_Step_Pin, LOW);
+      if (X_Motor_Direction == X_Motor_Direction_Setting){
+        Head_X += MM_Per_Step;
+      } else {
+        Head_X -= MM_Per_Step;
+      }
       X_Enabled = False;
     }
 
@@ -258,14 +359,20 @@ void linearMove(struct Gcommand *currentGCommand) {
 
     //Turn Y on
     if (Y_Timer != -1 && Y_Enabled == False && Y_Time_Watch >= Y_Timer) {
-      //digitalWrite(Y_Axis_Step_Pin, HIGH);
+      digitalWrite(Y_Axis_Step_Pin, HIGH);
       Y_Pulse_Timer = Min_Pulse_Width;
+      Y_Time_Watch = 0;
       Y_Enabled = True;
     }
 
     //Turn Y off
     if (Y_Enabled == True && Y_Pulse_Timer <= 0) {
-      //digitalWrite(Y_Axis_Step_Pin, LOW);
+      digitalWrite(Y_Axis_Step_Pin, LOW);
+      if (Y_Motor_Direction == Y_Motor_Direction_Setting){
+        Head_Y += MM_Per_Step;
+      } else {
+        Head_Y -= MM_Per_Step;
+      }
       Y_Enabled = False;
     }
 
@@ -276,51 +383,104 @@ void linearMove(struct Gcommand *currentGCommand) {
 
     //Turn Z on
     if (Z_Timer != -1 && Z_Enabled == False && Z_Time_Watch >= Z_Timer) {
-      //digitalWrite(Z_Axis_Step_Pin, HIGH);
+      digitalWrite(Z1_Axis_Step_Pin, HIGH);
+      digitalWrite(Z2_Axis_Step_Pin, HIGH);
       Z_Pulse_Timer = Min_Pulse_Width;
+      Z_Time_Watch = 0;
       Z_Enabled = True;
     }
 
     //Turn Z off
     if (Z_Enabled == True && Z_Pulse_Timer <= 0) {
-      //digitalWrite(Z_Axis_Step_Pin, LOW);
+      digitalWrite(Z1_Axis_Step_Pin, LOW);
+      digitalWrite(Z2_Axis_Step_Pin, LOW);
+      if (Z_Motor_Direction == Z_Motor_Direction_Setting){
+        Head_Z += ZMM_Per_Step;
+      } else {
+        Head_Z -= ZMM_Per_Step;
+      }
       Z_Enabled = False;
+    }
+
+    //Lower E on-time timer
+    if (E_Enabled == True) {
+      E_Pulse_Timer -= Timer_Difference;
+    }
+
+    //Turn E on
+    if (E_Timer != -1 && E_Enabled == False && E_Time_Watch >= E_Timer) {
+      digitalWrite(E_Axis_Step_Pin, HIGH);
+      E_Pulse_Timer = Min_Pulse_Width;
+      E_Enabled = True;
+      E_Time_Watch = 0;
+    }
+
+    //Turn E off
+    if (E_Enabled == True && E_Pulse_Timer <= 0) {
+      digitalWrite(E_Axis_Step_Pin, LOW);
+      if (E1_Motor_Direction == E1_Motor_Direction_Setting){
+        Head_E1 += MM_Per_Step;
+      } else {
+        Head_E1 -= MM_Per_Step;
+      }
+      E_Enabled = False;
     }
 
     //Check if each axis is complete
     if (X_done == 0) {
       X_done = checkIfDone(currentGCommand->x - Head_X);
+      if (X_done == 1){
+        X_Timer = -1;
+      }
     }
 
     if (Y_done == 0) {
       Y_done = checkIfDone(currentGCommand->y - Head_Y);
+      if (Y_done == 1){
+        Y_Timer = -1;
+      }
     }
 
     if (Z_done == 0) {
-      Z_done = checkIfDone(currentGCommand->z - Head_Z);
+      Z_done = checkIfZDone(currentGCommand->z - Head_Z);
+      if (Z_done == 1){
+        Z_Timer = -1;
+      }
+    }
+
+    if (E_done == 0) {
+      E_done = checkIfDone(currentGCommand->e - Head_E1);
+      if (E_done == 1){
+        E_Timer = -1;
+      }
     }
     
   }
 
 }
 
-//Reverses the given motor's direction
-void reverseMotor(uint8_t Motor) {
-  if (Motor == Clockwise) {
-    Motor = CounterClockwise;
+//Checks if theres less than a step left
+//If so, figure that it's done
+uint8_t checkIfDone(float MM_Left){
+  if (MM_Left < 0.0){
+    MM_Left *= -1;
+  }
+  
+  if ((MM_Left < MM_Per_Step - 0.00125) || (MM_Left == 0.0)){
+    return 1;
   } else {
-    Motor = Clockwise;
+    return 0;
   }
 }
 
 //Checks if theres less than a step left
 //If so, figure that it's done
-uint8_t checkIfDone(float MM_Left){
-  if (MM_Left < 0){
+uint8_t checkIfZDone(float MM_Left){
+  if (MM_Left < 0.0){
     MM_Left *= -1;
   }
   
-  if (MM_Left < MM_Per_Step){
+  if ((MM_Left < ZMM_Per_Step - 0.00125) || (MM_Left == 0.0)){
     return 1;
   } else {
     return 0;
@@ -382,15 +542,17 @@ void startSDPrint(char* filename){                  //M24
 void continueSDPrint(){
 
   int temp;
+  NoCommand = false;
   
   readLine(&SDReadFile, cmdBuffer);
-
+  
   if (cmdBuffer[0] == ';'){ //ignore comments
-    continueSDPrint();
+    NoCommand = true;
+    return;
   }
 
   temp = readGCodeString(cmdBuffer, &currentGCodeCommand);
-  
+
   if (currentlyopen == false){
     SDReadFile.close();
     Serial.println("Last line read!");
@@ -413,43 +575,35 @@ void manualMove(uint8_t axis, float amount){
     case 0:
       if (amount < 0){
         digitalWrite(X_Axis_Dir_Pin, HIGH);
-        X_Motor_Direction = CounterClockwise;
         amount *= -1;
       } else {
         digitalWrite(X_Axis_Dir_Pin, LOW);
-        X_Motor_Direction = Clockwise;
       }
       break;
     case 1:
       if (amount < 0){
         digitalWrite(Y_Axis_Dir_Pin, HIGH);
-        Y_Motor_Direction = CounterClockwise;
         amount *= -1;
       } else {
         digitalWrite(Y_Axis_Dir_Pin, LOW);
-        Y_Motor_Direction = Clockwise;
       }
       break;
     case 2:
       if (amount < 0){
         digitalWrite(Z1_Axis_Dir_Pin, HIGH);
         digitalWrite(Z2_Axis_Dir_Pin, HIGH);
-        Z_Motor_Direction = CounterClockwise;
         amount *= -1;
       } else {
         digitalWrite(Z1_Axis_Dir_Pin, LOW);
         digitalWrite(Z2_Axis_Dir_Pin, LOW);
-        Z_Motor_Direction = Clockwise;
       }
       break;
     case 3:
       if (amount < 0){
         digitalWrite(E_Axis_Dir_Pin, HIGH);
-        E1_Motor_Direction = CounterClockwise;
         amount *= -1;
       } else {
         digitalWrite(E_Axis_Dir_Pin, LOW);
-        E1_Motor_Direction = Clockwise;
       }
       break;
    }
@@ -514,6 +668,8 @@ void manualMove(uint8_t axis, float amount){
       }
       break;
    }
+
+   Serial.println("Done moving");
    
 }
 
@@ -540,7 +696,7 @@ short getTemperature(int ADCVal){ //Returns temperature in C. Returns 0 if too c
     //Check if too hot
     if (ADCVal > 1010){
       done = true;
-      T = -1;
+      T = -1;    
     }
 
     //If no exact match, do interpolation
@@ -580,10 +736,10 @@ void setTemperature(byte heaterNum, short Temp){  //0 = Bed, 1 = Extruder
   if (currentTemp < Temp - 1){
     //Turn on heater
     
-    if (heaterNum == 0){
-      digitalWrite(Extruder_Heater_Pin, 1);
+    if (heaterNum == 1){
+      digitalWrite(Extruder_Heater_Pin, HIGH);
     } else if (heaterNum == 0){
-      digitalWrite(Bed_Heater_Pin, 1);
+      digitalWrite(Bed_Heater_Pin, HIGH);
     } else {
       return;
     }
@@ -593,10 +749,10 @@ void setTemperature(byte heaterNum, short Temp){  //0 = Bed, 1 = Extruder
   if (currentTemp > Temp + 1){
     //Turn off heater
 
-    if (heaterNum == 0){
-      digitalWrite(Extruder_Heater_Pin, 0);
+    if (heaterNum == 1){
+      digitalWrite(Extruder_Heater_Pin, LOW);
     } else if (heaterNum == 0){
-      digitalWrite(Bed_Heater_Pin, 0);
+      digitalWrite(Bed_Heater_Pin, LOW);
     } else {
       return;
     }

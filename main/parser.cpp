@@ -3,7 +3,7 @@
 int readGCodeString(char* command, GCommand *returnGCommand){
 
   char i = 0, i2 = 0, fflag = 0;
-  char tempBuf[25] = {'\0'};
+  char tempBuf[45] = {'\0'};
   int inum;
   float fnum;
   //Set all flags to 0
@@ -29,7 +29,7 @@ int readGCodeString(char* command, GCommand *returnGCommand){
   while (command[i] != '\n' && command[i] != '\r' && command[i] != '\0' && command[i] != ';'){
     
     //Iterate through each parameter
-    while (command[i] != ' ' && command[i] != '\r' && command[i] != '\n' && command[i] != '\0' && command[i] != ';' && i2 < 24){
+    while (command[i] != ' ' && command[i] != '\r' && command[i] != '\n' && command[i] != '\0' && command[i] != ';' && i2 < 44){
       tempBuf[i2++] = command[i];
       if (command[i++] == '.'){
         fflag = 1;
@@ -45,7 +45,7 @@ int readGCodeString(char* command, GCommand *returnGCommand){
 	
 	//Check for command with message
 	if ((returnGCommand->letter == 'M') && ( (returnGCommand->num == 117) || (returnGCommand->num == 23) ) ){
-	  for (i = 0; i < 24 && tempBuf[i] != '\r' && tempBuf[i] != '\n' && tempBuf[i] != '\0'; i++){
+	  for (i = 0; i < 44 && tempBuf[i] != '\r' && tempBuf[i] != '\n' && tempBuf[i] != '\0'; i++){
 		*(returnGCommand->msg + i) = tempBuf[i];  
 	  }
 	  *(returnGCommand->msg + i) = '\0';
@@ -114,7 +114,7 @@ int readGCodeString(char* command, GCommand *returnGCommand){
         } else {
           returnGCommand->w = fnum;
         }
-		returnGCommand->wf = 1;
+		    returnGCommand->wf = 1;
         break;
 	  case 'i':
       case 'I':
@@ -123,7 +123,7 @@ int readGCodeString(char* command, GCommand *returnGCommand){
         } else {
           returnGCommand->i = fnum;
         }
-		returnGCommand->ifl = 1;
+		    returnGCommand->ifl = 1;
         break;
       case 'j':
       case 'J':
@@ -132,7 +132,7 @@ int readGCodeString(char* command, GCommand *returnGCommand){
         } else {
           returnGCommand->j = fnum;
         }
-		returnGCommand->jf = 1;
+		    returnGCommand->jf = 1;
         break;
       case 'd':
       case 'D':
@@ -141,16 +141,16 @@ int readGCodeString(char* command, GCommand *returnGCommand){
         } else {
           returnGCommand->d = fnum;
         }
-		returnGCommand->df = 1;
+		    returnGCommand->df = 1;
         break;
 	  case 'f':
-      case 'F':
+      case 'F': //Receives in mm/m, turns into mm/s
         if (fflag == 0){
-          returnGCommand->f = inum;
+          returnGCommand->f = inum / 60;
         } else {
-          returnGCommand->f = fnum;
+          returnGCommand->f = fnum / 60.0;
         }
-		returnGCommand->ff = 1;
+		    returnGCommand->ff = 1;
         break;
 	  case 'e':
       case 'E':
@@ -159,7 +159,7 @@ int readGCodeString(char* command, GCommand *returnGCommand){
         } else {
           returnGCommand->e = fnum;
         }
-		returnGCommand->ef = 1;
+		    returnGCommand->ef = 1;
         break;
 	  case 't':	//Tool
       case 'T':
@@ -168,7 +168,7 @@ int readGCodeString(char* command, GCommand *returnGCommand){
         } else {
           returnGCommand->t = fnum;
         }
-		returnGCommand->tf = 1;
+		    returnGCommand->tf = 1;
         break;
 	  case 's':	//Temperature
       case 'S':
@@ -179,7 +179,7 @@ int readGCodeString(char* command, GCommand *returnGCommand){
         } else {
           returnGCommand->s = fnum;
         }
-		returnGCommand->sf = 1;
+		    returnGCommand->sf = 1;
         break;
       case 'g':
       case 'G':
@@ -208,7 +208,7 @@ int readGCodeString(char* command, GCommand *returnGCommand){
     }
 
     //Clear temporary buffer
-    for (i2 = 0; i2 < 25; i2++){
+    for (i2 = 0; i2 < 45; i2++){
       tempBuf[i2] = '\0';
     }
     i2 = 0;

@@ -6,7 +6,7 @@
 #include "sdios.h"
 
 typedef struct filetree{
- char filename[20];
+ char filename[30];
  struct filetree *nextfile = NULL; 
 }FileTree;
 

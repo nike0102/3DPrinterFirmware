@@ -25,12 +25,12 @@
 //*******************************************************Motors
 #ifndef JOSH
 //A4988 driver pins
-#define X_Axis_Step_Pin 22
-#define X_Axis_Dir_Pin  23
+#define X_Axis_Step_Pin 37      //22 Broke - Use Z1
+#define X_Axis_Dir_Pin  36      //23
 #define Y_Axis_Step_Pin 25
 #define Y_Axis_Dir_Pin  24
-#define Z1_Axis_Step_Pin 37
-#define Z1_Axis_Dir_Pin  36
+#define Z1_Axis_Step_Pin 22     //37 Tie to Z2 step pin
+#define Z1_Axis_Dir_Pin  23     //36
 #define Z2_Axis_Step_Pin 35
 #define Z2_Axis_Dir_Pin  34
 #define E_Axis_Step_Pin 49
@@ -87,9 +87,13 @@
 //*******************************************************Endstops
 
 //Constants
-#define X_Axis_Dir_Config CounterClockwise  //On Y facing front of Bed
 #define MM_Per_Rotation 8
-#define Steps_Per_Rotation 200
-#define Min_Pulse_Width 500        //in microseconds
+#define Min_Pulse_Width 150        //in microseconds, minimum of arduino seems to be ~120us on a 2 axis move with extrusion
+
+//Which way is positive when the motor spins
+#define X_Motor_Direction_Setting Clockwise
+#define Y_Motor_Direction_Setting Clockwise
+#define Z_Motor_Direction_Setting CounterClockwise   
+#define E1_Motor_Direction_Setting Clockwise
 
 #endif
